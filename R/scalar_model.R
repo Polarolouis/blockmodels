@@ -17,6 +17,40 @@ setRefClass("scalar_model",
                 }
             }
 
+            if (length(nodes_covariates) > 0) {
+                if (any(!sapply(nodes_covariates, is.matrix))) {
+                    stop(paste("Nodes covariates must be matrices."))
+                }
+
+                # TODO add checks for the values of the covariates
+
+                if ((membership_name == "SBM_sym" || membership_name == "SBM")) {
+                    if (length(nodes_covariates) > 1) {
+                        stop(paste("Multiple nodes covariates given for SBM.", "Should only be one matrix."))
+                    }
+                    if (nrow(nodes_covariates[[1]]) != nrow(adj)) {
+                        stop(paste("The number of rows of the node covariates matrix must match the number of nodes."))
+                    }
+                }
+                if (membership_name == "LBM") {
+                    if (is.null(names(nodes_covariates))) {
+                        stop(paste("For LBM node covariates matrices must be named (row, col) to indicate which nodes the covariates are on."))
+                    }
+                    if (any(!(names(nodes_covariates) %in% c("row", "col")))) {
+                        stop(paste("For LBM node covariates matrices, the names must be either row or col."))
+                    }
+
+                    sapply(c("row", "col"), function(dim) {
+                        if (dim %in% names(nodes_covariates)) {
+                            number_of_nodes <- ifelse(dim == "row", nrow(adj), ncol(adj))
+                            if (nrow(nodes_covariates[[dim]]) != number_of_nodes) {
+                                stop(paste0("The number of rows for the ", dim, " nodes covariates matrix must match the number of ", dim, " nodes."))
+                            }
+                        }
+                    })
+                }
+            }
+
             if(membership_name=="SBM_sym")
             {
                 if(isSymmetric(adj))
