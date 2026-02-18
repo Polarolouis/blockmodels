@@ -1,8 +1,8 @@
-
 setRefClass("scalar_model",
     contains = "model",
     fields = list(
-        adj = "matrix"
+        adj = "matrix",
+        nodes_covariates = "list"
     ),
     methods = list(
         postinit = function()
