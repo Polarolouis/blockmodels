@@ -26,7 +26,7 @@ setRefClass("scalar_model",
 
                 if ((membership_name == "SBM_sym" || membership_name == "SBM")) {
                     if (length(nodes_covariates) > 1) {
-                        stop(paste("Multiple nodes covariates given for SBM.", "Should only be one matrix."))
+                        stop(paste("Multiple nodes covariates given for SBM.", "Should only be a list with one matrix."))
                     }
                     if (nrow(nodes_covariates[[1]]) != nrow(adj)) {
                         stop(paste("The number of rows of the node covariates matrix must match the number of nodes."))
