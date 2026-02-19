@@ -3,9 +3,21 @@ struct LBM
 {
     mat Z1;
     mat Z2;
+
+    // In case there are no covariates on nodes
     rowvec alpha1;
     rowvec alpha2;
-    
+
+    // For covariates on nodes
+    bool has_row_covariates{false};
+    bool has_col_covariates{false};
+
+    mat row_covariates;
+    mat col_covariates;
+
+    mat alpha1mat;
+    mat alpha2mat;
+
     LBM(Rcpp::List & membership_from_R)
     {
         mat origZ1 = membership_from_R["Z1"];
@@ -18,6 +30,19 @@ struct LBM
         boundaries(Z2,tol2,1-tol2);
         Z1 /= repmat( sum(Z1,1), 1, Z1.n_cols );
         Z2 /= repmat( sum(Z2,1), 1, Z2.n_cols );
+
+        if (membership_from_R.containsElementNamed("row_covariates")){
+            has_row_covariates = true;
+            // TODO Ask JBL about why this is needed and the simpler way wont compile?
+            mat orig_row_covariates = membership_from_R["row_covariates"];
+            row_covariates = orig_row_covariates;
+        }
+        if (membership_from_R.containsElementNamed("col_covariates")){
+            has_col_covariates = true;
+            mat orig_col_covariates = membership_from_R["col_covariates"];
+            col_covariates = orig_col_covariates;
+        }
+
         alpha1 = sum(Z1,0) / Z1.n_rows;
         alpha2 = sum(Z2,0) / Z2.n_rows;
 
@@ -105,6 +130,8 @@ struct LBM
         values["alpha1"] = alpha1;
         values["Z2"] = Z2;
         values["alpha2"] = alpha2;
+        values["row_covariates"] = row_covariates;
+        values["col_covariates"] = col_covariates;
 
         return values;
     }
