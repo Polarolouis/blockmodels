@@ -4,6 +4,11 @@ struct SBM
     mat Z;
     rowvec alpha;
 
+    // For nodes covariates
+    bool has_nodes_covariates{false};
+    mat nodes_covariates;
+    mat alphamat;
+
     SBM(Rcpp::List & membership_from_R)
     {
         mat origZ = membership_from_R["Z"];
@@ -12,6 +17,11 @@ struct SBM
         boundaries(Z,tol,1-tol);
         Z /= repmat( sum(Z,1), 1, Z.n_cols );
         alpha = sum(Z,0) / Z.n_rows;
+        if (membership_from_R.containsElementNamed("nodes_covariates")) {
+            has_nodes_covariates = true;
+            mat orig_nodes_covariates = membership_from_R["nodes_covariates"];
+            nodes_covariates = orig_nodes_covariates;
+        }
     }
 
     SBM& operator=(const SBM& orig)
@@ -83,6 +93,7 @@ struct SBM
         Rcpp::List values;
         values["Z"] = Z;
         values["alpha"] = alpha;
+        values["nodes_covariates"] = nodes_covariates;
 
         return values;
     }
