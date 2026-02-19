@@ -166,7 +166,7 @@ setRefClass("model",
                     say(1,"Estimation for 2 groups (1+1)")
                     do_with_inits(
                         list(getRefClass(membership_name)(
-                            network_size=.self$number_of_nodes())),
+                            network_size=.self$number_of_nodes(), row_covar = .self$nodes_covariates[["row"]], col_covar = .self$nodes_covariates[["col"]])),
                         2,reinitialization_effort)
                 }
                 else
@@ -174,7 +174,7 @@ setRefClass("model",
                     say(1,"Estimation for 1 groups")
                     do_with_inits(
                         list(getRefClass(membership_name)(
-                            network_size=.self$number_of_nodes())),
+                            network_size=.self$number_of_nodes(), nodes_covar = .self$nodes_covariates[[1]])),
                         1,reinitialization_effort)
 
                 }
