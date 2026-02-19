@@ -77,10 +77,10 @@ setRefClass("LBM",
             cat("        $Z1 : matrix of row nodes memberships\n")
             cat("        $Z2 : matrix of col nodes memberships\n")
             if(length(row_covariates) > 0) {
-                cat("        $row_covariates : matrix of row nodes memberships\n")
+                cat("        $row_covariates : matrix of row nodes covariates\n")
             }
             if(length(col_covariates) > 0) {
-                cat("        $col_covariates : matrix of row nodes memberships\n")
+                cat("        $col_covariates : matrix of col nodes covariates\n")
             }
             cat("        $plot() : plot the memberships\n")
         },
