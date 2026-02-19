@@ -49,8 +49,11 @@ setRefClass("SBM",
             cat("SBM membership\n")
             cat("    Groups:",paste(ncol(Z),"groups\n"))
             cat("    Nodes:",paste(nrow(Z),"nodes\n"))
-            cat("    Usefull fields and methods:\n")
+            cat("    Useful fields and methods:\n")
             cat("        $Z : matrix of nodes memberships\n")
+            if(length(nodes_covariates) > 0) {
+                cat("        $nodes_covariates : matrix of nodes covariates\n")
+            }
             cat("        $plot() : plot the memberships\n")
         },
         to_cc = function()
