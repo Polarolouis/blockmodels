@@ -55,6 +55,13 @@ struct LBM
         alpha1=orig.alpha1;
         alpha2=orig.alpha2;
 
+        alpha1mat=orig.alpha1mat;
+        alpha2mat=orig.alpha2mat;
+        has_row_covariates=orig.has_row_covariates;
+        has_col_covariates=orig.has_col_covariates;
+        row_covariates=orig.row_covariates;
+        col_covariates=orig.col_covariates;
+
         return *this;
     }
 
