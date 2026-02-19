@@ -3,10 +3,11 @@
 
 setRefClass("SBM",
     fields = list(
-        Z="matrix"
+        Z="matrix",
+        nodes_covariates = "matrix"
     ),
     methods = list(
-        initialize = function(network_size=FALSE,classif=FALSE,from_cc=FALSE)
+        initialize = function(network_size=FALSE,classif=FALSE,from_cc=FALSE, nodes_covar = NULL)
         {
             if(!classif[1])
             {
@@ -29,6 +30,10 @@ setRefClass("SBM",
                 {
                     Z[i,classif[i]] <<- 1
                 }
+            }
+            # TODO Add a check in user function to assert nodes_covariates size, where defined is correct
+            if (!is.null(nodes_covar)) {
+                nodes_covariates <<- nodes_covar
             }
         },
         digest = function()

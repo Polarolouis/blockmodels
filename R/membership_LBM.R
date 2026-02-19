@@ -4,10 +4,12 @@
 setRefClass("LBM",
     fields = list(
         Z1="matrix",
-        Z2="matrix"
+        Z2="matrix",
+        row_covariates = "matrix",
+        col_covariates = "matrix"
     ),
     methods = list(
-        initialize = function(network_size=NULL,classif=NULL,from_cc=NULL)
+        initialize = function(network_size=NULL,classif=NULL,from_cc=NULL, row_covar = NULL, col_covar = NULL) 
         {
             if(length(classif)==0)
             {
@@ -46,6 +48,13 @@ setRefClass("LBM",
                     Z2[i,classif2[i]] <<- 1
                 }
             }
+            # TODO Add a check in user function to assert nodes_covariates size, where defined is correct
+            if (!is.null(row_covar)) {
+                row_covariates <<- row_covar
+            }
+            if (!is.null(col_covar)) {
+                col_covariates <<- col_covar
+            }
         },
         digest = function()
         {
@@ -64,9 +73,15 @@ setRefClass("LBM",
             cat("LBM membership\n")
             cat(paste("    Groups:",ncol(Z1),"row groups,",ncol(Z2),"col groups\n"))
             cat(paste("    Nodes:",nrow(Z1),"row nodes,",nrow(Z2),"col nodes\n"))
-            cat("    Usefull fields and methods:\n")
+            cat("    Useful fields and methods:\n")
             cat("        $Z1 : matrix of row nodes memberships\n")
             cat("        $Z2 : matrix of col nodes memberships\n")
+            if(length(row_covariates) > 0) {
+                cat("        $row_covariates : matrix of row nodes memberships\n")
+            }
+            if(length(col_covariates) > 0) {
+                cat("        $col_covariates : matrix of row nodes memberships\n")
+            }
             cat("        $plot() : plot the memberships\n")
         },
         to_cc = function()
