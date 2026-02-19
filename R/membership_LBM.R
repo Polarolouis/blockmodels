@@ -86,7 +86,14 @@ setRefClass("LBM",
         },
         to_cc = function()
         {
-            list(Z1=Z1,Z2=Z2)
+            output_list <- list(Z1=Z1,Z2=Z2)
+            if (!is.null(row_covariates)){
+                output_list[["row_covariates"]] = row_covariates
+            }
+            if (!is.null(col_covariates)){
+                output_list[["col_covariates"]] = col_covariates
+            }
+            return(output_list)
         },
         map = function()
         {
@@ -113,7 +120,7 @@ setRefClass("LBM",
                     {
                         Zn<-as.matrix(Z1[,-k2])
                         Zn[,k1]<-Z1[,k1]+Z1[,k2]
-                        result <- c(result,list(getRefClass('LBM')(from_cc=list(Z1=Zn,Z2=Z2))))
+                        result <- c(result,list(getRefClass('LBM')(from_cc=list(Z1=Zn,Z2=Z2), row_covar = row_covariates, col_covar = col_covariates)))
                     }
                 }
             }
@@ -126,7 +133,7 @@ setRefClass("LBM",
                     {
                         Zn<-as.matrix(Z2[,-k2])
                         Zn[,k1]<-Z2[,k1]+Z2[,k2]
-                        result <- c(result,list(getRefClass('LBM')(from_cc=list(Z1=Z1,Z2=Zn))))
+                        result <- c(result,list(getRefClass('LBM')(from_cc=list(Z1=Z1,Z2=Zn), row_covar = row_covariates, col_covar = col_covariates)))
                     }
                 }
             }

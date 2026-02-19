@@ -87,7 +87,7 @@ setRefClass("scalar_model",
                     Z[,q] <- Z[,q]*sub_classif
                     Z[,Q+1] <- Z[,Q+1]*(1-sub_classif)
                     result <- c(result, list(
-                            getRefClass(membership_name)(from_cc=list(Z=Z))
+                            getRefClass(membership_name)(from_cc=list(Z=Z), nodes_covar = .self$nodes_covariates[[1]])
                         ))
                 }
                 return(result)
@@ -130,7 +130,8 @@ setRefClass("scalar_model",
                         Z1[,q] <- Z1[,q]*sub_classif
                         Z1[,Q1+1] <- Z1[,Q1+1]*(1-sub_classif)
                         result <- c(result, list(
-                                getRefClass(membership_name)(from_cc=list(Z1=Z1,Z2=membership$Z2))
+                                getRefClass(membership_name)(from_cc=list(Z1=Z1,Z2=membership$Z2, row_covar=.self$nodes_covariates[["row"]],
+                                col_covar=.self$nodes_covariates[["col"]]))
                             ))
                     }
                 }
@@ -147,7 +148,8 @@ setRefClass("scalar_model",
                         Z2[,q] <- Z2[,q]*sub_classif
                         Z2[,Q2+1] <- Z2[,Q2+1]*(1-sub_classif)
                         result <- c(result, list(
-                                getRefClass(membership_name)(from_cc=list(Z1=membership$Z1,Z2=Z2))
+                                getRefClass(membership_name)(from_cc=list(Z1=membership$Z1,Z2=Z2, row_covar=.self$nodes_covariates[["row"]],
+                                col_covar=.self$nodes_covariates[["col"]]))
                             ))
                     }
                 }
@@ -238,7 +240,8 @@ setRefClass("scalar_model",
                             classif=blockmodelskmeans(
                                 as.matrix(precomputed$eigen$vectors[,1:Q]),
                                 Q
-                            )
+                            ),
+                            nodes_covar = .self$nodes_covariates[[1]]
                         )
                     )
                 )
@@ -279,7 +282,9 @@ setRefClass("scalar_model",
                                 classif=list(
                                     blockmodelskmeans(as.matrix(precomputed$eigen1$vectors[,1:Q1]),Q1),
                                     blockmodelskmeans(as.matrix(precomputed$eigen2$vectors[,1:Q2]),Q2)
-                                )
+                                ),
+                                row_covar = .self$nodes_covariates[["row"]],
+                                col_covar = .self$nodes_covariates[["col"]]
                             )
                         }
                     }
