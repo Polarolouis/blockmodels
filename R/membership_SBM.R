@@ -32,7 +32,7 @@ setRefClass("SBM",
                 }
             }
             # TODO Add a check in user function to assert nodes_covariates size, where defined is correct
-            if (!is.null(nodes_covar)) {
+            if (length(nodes_covar) > 0) {
                 nodes_covariates <<- nodes_covar
             }
         },
@@ -58,7 +58,11 @@ setRefClass("SBM",
         },
         to_cc = function()
         {
-            list(Z=Z)
+            output_list <- list(Z=Z)
+            if (length(nodes_covariates) != 0){
+                output_list[["nodes_covariates"]] <- nodes_covariates
+            }
+            return(output_list)
         },
         map = function()
         {
@@ -80,7 +84,7 @@ setRefClass("SBM",
                 {
                     Z2<-Z[,-k2]
                     Z2[,k1]<-Z[,k1]+Z[,k2]
-                    result <- c(result,list(getRefClass('SBM')(from_cc=list(Z=Z2))))
+                    result <- c(result,list(getRefClass('SBM')(from_cc=list(Z=Z2), nodes_covar = nodes_covariates)))
                 }
             }
             return(result)
