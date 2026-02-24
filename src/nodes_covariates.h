@@ -110,10 +110,6 @@ mat optimize_softmax(
 
         double Lnew = objective_gradient(X, T, Btilde, grad);
 
-        Rcpp::Rcout << "iter " << iter
-             << "  L=" << Lnew
-             << "  |grad|=" << norm(grad, "fro") << endl;
-
         if (norm(grad, "fro") < tol)
             break;
 
