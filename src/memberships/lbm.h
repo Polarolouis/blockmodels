@@ -15,6 +15,10 @@ struct LBM
     mat row_covariates;
     mat col_covariates;
 
+    // Parameters for the covariates
+    mat B;
+    mat G;
+
     mat alpha1mat;
     mat alpha2mat;
 
@@ -91,6 +95,12 @@ struct LBM
         {
             mat lZ1 = repmat(log(alpha1),Z1.n_rows,1);
             mat lZ2 = repmat(log(alpha2),Z2.n_rows,1);
+            if (has_row_covariates){
+                lZ1 = log(alpha1mat);
+            }
+            if (has_col_covariates){
+                lZ2 = log(alpha2mat);
+            }
 
             e_fixed_step(*this, model, net, lZ1, lZ2);
 
@@ -130,10 +140,26 @@ struct LBM
     inline
     double m_step()
     {
-        alpha1 = sum(Z1,0) / Z1.n_rows;
-        alpha2 = sum(Z2,0) / Z2.n_rows;
-
-        return accu( Z1*log(alpha1).t() ) + accu( Z2*log(alpha2).t() );
+        double dim1_out = 0;
+        double dim2_out = 0;
+        if (has_row_covariates  && Z1.n_cols > 1)
+        {
+            B = optimize_softmax(row_covariates, Z1);
+            alpha1mat = softmax(row_covariates*B);
+            dim1_out = accu(Z1*log(alpha1mat).t());
+        }else{
+            alpha1 = sum(Z1,0) / Z1.n_rows;
+            dim1_out = accu( Z1*log(alpha1).t() );
+        }
+        if (has_col_covariates  && Z2.n_cols > 1){ 
+            G = optimize_softmax(col_covariates, Z2);
+            alpha2mat = softmax(col_covariates*G);
+            dim2_out = accu(Z2*log(alpha2mat).t());
+        }else{
+            alpha2 = sum(Z2,0) / Z2.n_rows;
+            dim2_out = accu( Z2*log(alpha2).t() );
+        }
+        return dim1_out + dim2_out;
     }
 
     inline
@@ -141,10 +167,19 @@ struct LBM
     {
         Rcpp::List values;
         values["Z1"] = Z1;
-        values["alpha1"] = alpha1;
+        if (has_row_covariates){
+            values["alpha1"] = alpha1mat;
+            values["B"] = B;
+        }else{
+            values["alpha1"] = alpha1;
+        }
         values["Z2"] = Z2;
-        values["alpha2"] = alpha2;
-        values["row_covariates"] = row_covariates;
+        if (has_col_covariates){
+            values["alpha2"] = alpha2mat;
+            values["G"] = G;
+        }else{
+            values["alpha2"] = alpha2;
+        }        values["row_covariates"] = row_covariates;
         values["col_covariates"] = col_covariates;
 
         return values;
