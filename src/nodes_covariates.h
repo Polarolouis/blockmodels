@@ -32,7 +32,6 @@ mat log_softmax(const mat &Z)
 inline
 mat build_full_B(const mat &Btilde)
 {
-    Rcpp::Rcout << "Btilde ncols : " << Btilde.n_cols << endl;
     mat B(Btilde.n_rows, Btilde.n_cols + 1, fill::zeros);
     B.cols(0, Btilde.n_cols - 1) = Btilde;
     return B;
@@ -46,8 +45,6 @@ double objective_gradient(
 {
     mat B = build_full_B(Btilde);
 
-    Rcpp::Rcout << "nrow(X) : " << X.n_rows << " | ncol(X) : " << X.n_cols << "\n";
-    Rcpp::Rcout << "nrow(B) : " << B.n_rows << " | ncol(B) : " << B.n_cols << "\n";
 
     mat Z = X * B;
 
@@ -62,7 +59,6 @@ double objective_gradient(
 
     mat Gfull = X.t() * (T - SP);
 
-    Rcpp::Rcout << "Btilde ncols : " << Btilde.n_cols << endl;
     // keep only identifiable parameters
     grad = Gfull.cols(0, Btilde.n_cols - 1);
 
