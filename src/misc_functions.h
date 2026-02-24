@@ -174,17 +174,3 @@ rowvec softmax(vec & x, bool clamp = true) {
 
     return(smax);
 }
-
-inline
-mat softmax_mat(mat & x, bool clamp = true) {
-    
-    
-    mat smax(x.n_rows, x.n_cols, fill::zeros);
-
-    for(unsigned int i=0;i<x.n_rows; i++){
-        rowvec xrow = x.row(i);
-        smax.row(i) = softmax(xrow, clamp = clamp);
-    }
-
-    return(smax);
-}
