@@ -22,6 +22,12 @@ setRefClass("LBM",
                 {
                     Z1 <<- from_cc$Z1
                     Z2 <<- from_cc$Z2
+                    if ("row_covariates" %in% names(from_cc)) {
+                        row_covariates <<- from_cc[["row_covariates"]]
+                    }
+                    if ("col_covariates" %in% names(from_cc)) {
+                        col_covariates <<- from_cc[["col_covariates"]]
+                    }
                 }
             }
             else
