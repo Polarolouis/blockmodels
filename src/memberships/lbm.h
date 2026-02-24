@@ -30,21 +30,29 @@ struct LBM
         boundaries(Z2,tol2,1-tol2);
         Z1 /= repmat( sum(Z1,1), 1, Z1.n_cols );
         Z2 /= repmat( sum(Z2,1), 1, Z2.n_cols );
+        alpha1 = sum(Z1,0) / Z1.n_rows;
+        alpha2 = sum(Z2,0) / Z2.n_rows;
+
+        // Init of RNG
+        // arma::arma_rng::set_seed_random();
 
         if (membership_from_R.containsElementNamed("row_covariates")){
             has_row_covariates = true;
             // TODO Ask JBL about why this is needed and the simpler way wont compile?
             mat orig_row_covariates = membership_from_R["row_covariates"];
             row_covariates = orig_row_covariates;
+
+            alpha1mat = repmat(alpha1, Z1.n_rows,1);
         }
+
         if (membership_from_R.containsElementNamed("col_covariates")){
             has_col_covariates = true;
             mat orig_col_covariates = membership_from_R["col_covariates"];
             col_covariates = orig_col_covariates;
+
+            alpha2mat = repmat(alpha2, Z2.n_rows,1);
         }
 
-        alpha1 = sum(Z1,0) / Z1.n_rows;
-        alpha2 = sum(Z2,0) / Z2.n_rows;
 
     }
 
@@ -54,7 +62,6 @@ struct LBM
         Z2=orig.Z2;
         alpha1=orig.alpha1;
         alpha2=orig.alpha2;
-
         alpha1mat=orig.alpha1mat;
         alpha2mat=orig.alpha2mat;
         has_row_covariates=orig.has_row_covariates;
