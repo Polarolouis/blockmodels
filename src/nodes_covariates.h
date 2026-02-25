@@ -1,5 +1,4 @@
-inline
-mat softmax(const mat &Z)
+inline mat softmax(const mat &Z)
 {
     mat Zshift = Z;
     vec maxZ = max(Z, 1); // row max
@@ -14,8 +13,7 @@ mat softmax(const mat &Z)
     return P;
 }
 
-inline
-mat log_softmax(const mat &Z)
+inline mat log_softmax(const mat &Z)
 {
     vec maxZ = max(Z, 1);
     mat Zshift = Z;
@@ -29,8 +27,7 @@ mat log_softmax(const mat &Z)
     return logP;
 }
 
-inline
-mat build_full_B(const mat &Btilde)
+inline mat build_full_B(const mat &Btilde)
 {
     mat B(Btilde.n_rows, Btilde.n_cols + 1, fill::zeros);
     B.cols(0, Btilde.n_cols - 1) = Btilde;
@@ -44,7 +41,6 @@ double objective_gradient(
     mat &grad)
 {
     mat B = build_full_B(Btilde);
-
 
     mat Z = X * B;
 
