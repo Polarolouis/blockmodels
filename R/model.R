@@ -363,7 +363,7 @@ setRefClass("model",
                     .self$do_one_estim,
                     mc.cores=ncores,
                     verbose=(verbosity>4))
-            
+
                 toc('estimation_run')
 
                 good <- FALSE
@@ -435,7 +435,7 @@ setRefClass("model",
                     r<-results[[kmax]]
                     if (membership_name == "LBM"){
                         memberships[[Q]] <<-
-                            getRefClass(membership_name)(from_cc=r$membership, row_covar = r$membership$row_covariates, col_covar = r$membership$col_covariates)
+                            getRefClass(membership_name)(from_cc=r$membership)
                     } else {
                         memberships[[Q]] <<-
                             getRefClass(membership_name)(from_cc=r$membership, nodes_covar = r$membership$nodes_covariates)
