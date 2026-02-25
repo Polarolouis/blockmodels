@@ -42,20 +42,24 @@ struct LBM
 
         if (membership_from_R.containsElementNamed("row_covariates"))
         {
-            has_row_covariates = true;
             // TODO Ask JBL about why this is needed and the simpler way wont compile?
             mat orig_row_covariates = membership_from_R["row_covariates"];
             row_covariates = orig_row_covariates;
-
+        }
+        if (row_covariates.n_elem > 0) {
+            // Rcpp::Rcout << "\nI'm a well behaved row covariates matrix" << endl;
+            has_row_covariates = true;
             alpha1mat = repmat(alpha1, Z1.n_rows, 1);
         }
 
         if (membership_from_R.containsElementNamed("col_covariates"))
         {
-            has_col_covariates = true;
             mat orig_col_covariates = membership_from_R["col_covariates"];
             col_covariates = orig_col_covariates;
-
+        }
+        if (col_covariates.n_elem > 0) {
+            // Rcpp::Rcout << "\nI'm a well behaved col covariates matrix" << endl;
+            has_col_covariates = true;
             alpha2mat = repmat(alpha2, Z2.n_rows, 1);
         }
     }
@@ -170,7 +174,7 @@ struct LBM
     {
         Rcpp::List values;
         values["Z1"] = Z1;
-        if (has_row_covariates)
+        if (has_row_covariates && Z1.n_cols > 1)
         {
             values["alpha1"] = alpha1mat;
             values["B"] = B;
@@ -180,7 +184,7 @@ struct LBM
             values["alpha1"] = alpha1;
         }
         values["Z2"] = Z2;
-        if (has_col_covariates)
+        if (has_col_covariates && Z1.n_cols > 1)
         {
             values["alpha2"] = alpha2mat;
             values["G"] = G;
