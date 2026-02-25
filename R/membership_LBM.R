@@ -93,10 +93,11 @@ setRefClass("LBM",
         to_cc = function()
         {
             output_list <- list(Z1=Z1,Z2=Z2)
-            if (!is.null(row_covariates)){
+
+            if (length(row_covariates) > 0){
                 output_list[["row_covariates"]] = row_covariates
             }
-            if (!is.null(col_covariates)){
+            if (length(row_covariates) > 0){
                 output_list[["col_covariates"]] = col_covariates
             }
             return(output_list)
