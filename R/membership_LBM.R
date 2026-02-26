@@ -5,9 +5,7 @@ setRefClass("LBM",
         Z1 = "matrix",
         Z2 = "matrix",
         row_covariates = "matrix",
-        col_covariates = "matrix",
-        alpha1 = "matrix",
-        alpha2 = "matrix"
+        col_covariates = "matrix"
     ),
     methods = list(
         initialize = function(network_size = NULL, classif = NULL, from_cc = NULL, row_covar = NULL, col_covar = NULL) {
@@ -18,14 +16,18 @@ setRefClass("LBM",
                 } else {
                     Z1 <<- from_cc$Z1
                     Z2 <<- from_cc$Z2
-                    alpha1 <<- from_cc[["alpha1"]]
-                    alpha2 <<- from_cc[["alpha2"]]
                     if ("row_covariates" %in% names(from_cc)) {
                         row_covariates <<- from_cc[["row_covariates"]]
                     }
+                    # if ("B" %in% names(from_cc)) {
+                    #     B <<- from_cc[["B"]]
+                    # }
                     if ("col_covariates" %in% names(from_cc)) {
                         col_covariates <<- from_cc[["col_covariates"]]
                     }
+                    # if ("G" %in% names(from_cc)) {
+                    #     G <<- from_cc[["G"]]
+                    # }
                 }
             } else {
                 fclassif1 <- factor(classif[[1]])
