@@ -26,7 +26,7 @@ setRefClass("SBM_sym",
                 classif <- as.numeric(fclassif)
                 Q <- length(levels(fclassif))
                 Z <<- matrix(0,nrow=length(classif),ncol=Q)
-                for(i in 1:length(classif))
+                for(i in seq_along(classif))
                 {
                     Z[i,classif[i]] <<- 1
                 }
@@ -94,7 +94,7 @@ setRefClass("SBM_sym",
             rn<-rownames(Z)
             if(is.null(rn))
             {
-                rn<-1:nrow(Z)
+                rn<-seq_len(nrow(Z))
             }
             ordering <- order(.self$map()$C)
             matrixplot(as.matrix(Z[ordering,]),rowlabels=rn[ordering])

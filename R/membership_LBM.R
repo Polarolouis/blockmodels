@@ -42,12 +42,12 @@ setRefClass("LBM",
                 Z1 <<- matrix(0, nrow = length(classif1), ncol = Q1)
                 Z2 <<- matrix(0, nrow = length(classif2), ncol = Q2)
 
-                for (i in 1:length(classif1))
+                for (i in seq_along(classif1))
                 {
                     Z1[i, classif1[i]] <<- 1
                 }
 
-                for (i in 1:length(classif2))
+                for (i in seq_along(classif2))
                 {
                     Z2[i, classif2[i]] <<- 1
                 }
@@ -144,14 +144,14 @@ setRefClass("LBM",
 
             rn1 <- rownames(Z1)
             if (is.null(rn1)) {
-                rn1 <- 1:nrow(Z1)
+                rn1 <- seq_len(nrow(Z1))
             }
             ordering1 <- order(.self$map()$C1)
             matrixplot(as.matrix(Z1[ordering1, ]), rowlabels = rn1[ordering1])
 
             rn2 <- rownames(Z2)
             if (is.null(rn2)) {
-                rn2 <- 1:nrow(Z2)
+                rn2 <- seq_len(nrow(Z2))
             }
             ordering2 <- order(.self$map()$C2)
             matrixplot(as.matrix(Z2[ordering2, ]), rowlabels = rn2[ordering2])
