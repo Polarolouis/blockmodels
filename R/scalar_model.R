@@ -31,6 +31,9 @@ setRefClass("scalar_model",
                     if (nrow(nodes_covariates[[1]]) != nrow(adj)) {
                         stop(paste("The number of rows of the node covariates matrix must match the number of nodes."))
                     }
+                    if (is.null(names(nodes_covariates)) || names(nodes_covariates) != "nodes") {
+                        stop(paste("For SBM node covariates matrix must be named 'nodes'."))
+                    }
                 }
                 if (membership_name == "LBM") {
                     if (is.null(names(nodes_covariates))) {
