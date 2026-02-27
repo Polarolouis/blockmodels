@@ -5,7 +5,9 @@ setRefClass("LBM",
         Z1 = "matrix",
         Z2 = "matrix",
         row_covariates = "matrix",
-        col_covariates = "matrix"
+        col_covariates = "matrix",
+        B = "matrix",
+        G = "matrix"
     ),
     methods = list(
         initialize = function(network_size = NULL, classif = NULL, from_cc = NULL, row_covar = NULL, col_covar = NULL) {
@@ -19,15 +21,15 @@ setRefClass("LBM",
                     if ("row_covariates" %in% names(from_cc)) {
                         row_covariates <<- from_cc[["row_covariates"]]
                     }
-                    # if ("B" %in% names(from_cc)) {
-                    #     B <<- from_cc[["B"]]
-                    # }
+                    if ("B" %in% names(from_cc)) {
+                        B <<- from_cc[["B"]]
+                    }
                     if ("col_covariates" %in% names(from_cc)) {
                         col_covariates <<- from_cc[["col_covariates"]]
                     }
-                    # if ("G" %in% names(from_cc)) {
-                    #     G <<- from_cc[["G"]]
-                    # }
+                    if ("G" %in% names(from_cc)) {
+                        G <<- from_cc[["G"]]
+                    }
                 }
             } else {
                 fclassif1 <- factor(classif[[1]])
@@ -60,6 +62,9 @@ setRefClass("LBM",
             if (!is.null(col_covar)) {
                 col_covariates <<- col_covar
             }
+
+            install_membership_alpha_binding(.self, "alpha1", "Z1", "row_covariates", "B")
+            install_membership_alpha_binding(.self, "alpha2", "Z2", "col_covariates", "G")
         },
         digest = function() {
             digest::digest(
@@ -94,8 +99,14 @@ setRefClass("LBM",
             if (length(row_covariates) > 0) {
                 output_list[["row_covariates"]] <- row_covariates
             }
-            if (length(row_covariates) > 0) {
+            if (length(col_covariates) > 0) {
                 output_list[["col_covariates"]] <- col_covariates
+            }
+            if (length(B) > 0) {
+                output_list[["B"]] <- B
+            }
+            if (length(G) > 0) {
+                output_list[["G"]] <- G
             }
             return(output_list)
         },

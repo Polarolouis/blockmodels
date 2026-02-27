@@ -4,7 +4,8 @@
 setRefClass("SBM",
     fields = list(
         Z="matrix",
-        nodes_covariates = "matrix"
+        nodes_covariates = "matrix",
+        B = "matrix"
     ),
     methods = list(
         initialize = function(network_size=FALSE,classif=FALSE,from_cc=FALSE, nodes_covar = NULL)
@@ -18,6 +19,9 @@ setRefClass("SBM",
                 else
                 {
                     Z <<- from_cc$Z
+                    if ("B" %in% names(from_cc)) {
+                        B <<- from_cc[["B"]]
+                    }
                 }
             }
             else
@@ -35,6 +39,8 @@ setRefClass("SBM",
             if (length(nodes_covar) > 0) {
                 nodes_covariates <<- nodes_covar
             }
+
+            install_membership_alpha_binding(.self, "alpha", "Z", "nodes_covariates", "B")
         },
         digest = function()
         {
@@ -54,6 +60,9 @@ setRefClass("SBM",
             if(length(nodes_covariates) > 0) {
                 cat("        $nodes_covariates : matrix of nodes covariates\n")
             }
+            if(length(B) > 0) {
+                cat("        $B : matrix of nodes covariates coefficients\n")
+            }
             cat("        $plot() : plot the memberships\n")
         },
         to_cc = function()
@@ -61,6 +70,9 @@ setRefClass("SBM",
             output_list <- list(Z=Z)
             if (length(nodes_covariates) != 0){
                 output_list[["nodes_covariates"]] <- nodes_covariates
+            }
+            if (length(B) != 0){
+                output_list[["B"]] <- B
             }
             return(output_list)
         },
