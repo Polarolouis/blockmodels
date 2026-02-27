@@ -60,56 +60,116 @@ double objective_gradient(
 
     return L;
 }
-double line_search(
+double line_search_bfgs(
     const mat &X,
     const mat &T,
-    mat &Btilde,
+    const mat &Btilde,
     const mat &grad,
+    const mat &direction,
     double L)
 {
-    double alpha = 1.0, c = 1e-4;
+    double alpha = 1.0;
+    const double c1 = 1e-4;
+    const double slope = accu(grad % direction);
 
-    for (int i = 0; i < 20; i++)
+    if (slope <= 0.0)
+        return 0.0;
+
+    for (int i = 0; i < 25; i++)
     {
-        mat Bnew = Btilde + alpha * grad;
+        mat Bnew = Btilde + alpha * direction;
         mat gtmp;
         double Lnew = objective_gradient(X, T, Bnew, gtmp);
 
-        if (Lnew >= L + c * alpha * accu(grad % grad))
+        // Armijo condition for maximization
+        if (Lnew >= L + c1 * alpha * slope)
             return alpha;
 
         alpha *= 0.5;
     }
-    return alpha;
+
+    return 0.0;
 }
 
 mat optimize_softmax(
     const mat &X,
     const mat &T,
-    int max_iter = 500,
-    double tol = 1e-6)
+    int max_iter = 1000,
+    double tol = 1e-4)
 {
     int p = X.n_cols;
     int R = T.n_cols;
+    int q = R - 1;
+    int nparam = p * q;
 
     // only R-1 columns optimized
-    mat Btilde(p, R - 1, fill::zeros);
+    mat Btilde(p, q, fill::zeros);
     mat grad;
 
     double L = objective_gradient(X, T, Btilde, grad);
 
+    mat H = eye<mat>(nparam, nparam); // inverse Hessian approximation
+
     for (int iter = 0; iter < max_iter; iter++)
     {
-        double step = line_search(X, T, Btilde, grad, L);
+        vec g = vectorise(grad);
 
-        Btilde += step * grad;
-
-        double Lnew = objective_gradient(X, T, Btilde, grad);
-
-        if (norm(grad, "fro") < tol)
+        if (norm(g, 2) < tol)
             break;
 
+        vec d = H * g; // ascent direction (maximize)
+
+        if (dot(g, d) <= 0.0)
+        {
+            d = g;
+            H.eye();
+        }
+
+        mat direction = reshape(d, p, q);
+        double step = line_search_bfgs(X, T, Btilde, grad, direction, L);
+
+        if (step <= 0.0)
+            break;
+
+        mat Bold = Btilde;
+        vec gold = g;
+
+        Btilde += step * direction;
+
+        double Lnew = objective_gradient(X, T, Btilde, grad);
+        vec gnew = vectorise(grad);
+
+        double rel_obj_diff = std::abs(Lnew - L) / (1.0 + std::abs(L));
+
+        vec s = vectorise(Btilde - Bold);
+        vec y = gnew - gold;
+        double ys = dot(y, s);
+
+        if (ys > 1e-12)
+        {
+            double rho = 1.0 / ys;
+            mat I = eye<mat>(nparam, nparam);
+            mat syT = s * y.t();
+            mat ysT = y * s.t();
+            H = (I - rho * syT) * H * (I - rho * ysT) + rho * (s * s.t());
+        }
+        else
+        {
+            H.eye();
+        }
+
         L = Lnew;
+
+        if (rel_obj_diff < tol)
+            break;
+
+        if (norm(gnew, 2) < tol)
+            break;
+        #ifdef DEBUG_M
+        if (iter % 50 == 0 || iter == max_iter - 1) {
+        Rcpp::Rcout << "Iteration " << iter + 1 << "/" << max_iter << ": L = " << Lnew << endl;
+        }
+        #endif
     }
 
     return build_full_B(Btilde);
