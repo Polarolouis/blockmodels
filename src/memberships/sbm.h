@@ -7,6 +7,7 @@ struct SBM
     // For nodes covariates
     bool has_nodes_covariates{false};
     mat nodes_covariates;
+    mat B;
     mat alphamat;
 
     SBM(Rcpp::List & membership_from_R)
@@ -28,6 +29,10 @@ struct SBM
     {
         Z=orig.Z;
         alpha=orig.alpha;
+        has_nodes_covariates = orig.has_nodes_covariates;
+        nodes_covariates = orig.nodes_covariates;
+        B = orig.B;
+        alphamat = orig.alphamat;
         
         return *this;
     }
@@ -49,6 +54,10 @@ struct SBM
         {
             // lZ the new log(Z) without renormalization
             mat lZ = repmat(log(alpha),Z.n_rows,1);
+            if (has_nodes_covariates && Z.n_cols > 1)
+            {
+                lZ = log(alphamat);
+            }
             
             // with a template, should be specialized by the model if possible
             e_fixed_step(*this, model, net, lZ);
@@ -83,6 +92,13 @@ struct SBM
     inline
     double m_step()
     {
+        if (has_nodes_covariates && Z.n_cols > 1)
+        {
+            B = optimize_softmax(nodes_covariates, Z);
+            alphamat = softmax(nodes_covariates * B);
+            return accu(Z * log(alphamat).t());
+        }
+
         alpha = sum(Z,0) / Z.n_rows;
         return accu(Z * log(alpha).t());
     }
@@ -92,7 +108,15 @@ struct SBM
     {
         Rcpp::List values;
         values["Z"] = Z;
-        values["alpha"] = alpha;
+        if (has_nodes_covariates && Z.n_cols > 1)
+        {
+            values["alpha"] = alphamat;
+            values["B"] = B;
+        }
+        else
+        {
+            values["alpha"] = alpha;
+        }
         values["nodes_covariates"] = nodes_covariates;
 
         return values;

@@ -74,6 +74,8 @@ struct LBM
         alpha2mat = orig.alpha2mat;
         has_row_covariates = orig.has_row_covariates;
         has_col_covariates = orig.has_col_covariates;
+        B = orig.B;
+        G = orig.G;
         row_covariates = orig.row_covariates;
         col_covariates = orig.col_covariates;
 
@@ -184,7 +186,7 @@ struct LBM
             values["alpha1"] = alpha1;
         }
         values["Z2"] = Z2;
-        if (has_col_covariates && Z1.n_cols > 1)
+        if (has_col_covariates && Z2.n_cols > 1)
         {
             values["alpha2"] = alpha2mat;
             values["G"] = G;
