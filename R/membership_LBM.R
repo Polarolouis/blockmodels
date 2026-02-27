@@ -18,16 +18,16 @@ setRefClass("LBM",
                 } else {
                     Z1 <<- from_cc$Z1
                     Z2 <<- from_cc$Z2
-                    if ("row_covariates" %in% names(from_cc)) {
+                    if ("row_covariates" %in% names(from_cc) && !is.null(from_cc[["row_covariates"]])) {
                         row_covariates <<- from_cc[["row_covariates"]]
                     }
-                    if ("B" %in% names(from_cc)) {
+                    if ("B" %in% names(from_cc) && length(from_cc[["B"]]) > 0) {
                         B <<- from_cc[["B"]]
                     }
-                    if ("col_covariates" %in% names(from_cc)) {
+                    if ("col_covariates" %in% names(from_cc) && !is.null(from_cc[["col_covariates"]])) {
                         col_covariates <<- from_cc[["col_covariates"]]
                     }
-                    if ("G" %in% names(from_cc)) {
+                    if ("G" %in% names(from_cc) && length(from_cc[["G"]]) > 0) {
                         G <<- from_cc[["G"]]
                     }
                 }
@@ -56,7 +56,6 @@ setRefClass("LBM",
             }
             # TODO Add a check in user function to assert nodes_covariates size, where defined is correct
             if (!is.null(row_covar)) {
-                cat("\n Adding row covariates\n")
                 row_covariates <<- row_covar
             }
             if (!is.null(col_covar)) {
@@ -117,7 +116,17 @@ setRefClass("LBM",
             )
         },
         ICL_penalty = function() {
-            (dim(Z1)[2] - 1) * log(dim(Z1)[1]) + (dim(Z2)[2] - 1) * log(dim(Z2)[1])
+            if (length(B) > 0) {
+                p <- nrow(B)
+            } else {
+                p <- 1
+            }
+            if (length(G) > 0) {
+                q <- nrow(G)
+            } else {
+                q <- 1
+            }
+            p * (dim(Z1)[2] - 1) * log(dim(Z1)[1]) + q * (dim(Z2)[2] - 1) * log(dim(Z2)[1])
         },
         merges = function(merge1, merge2) {
             result <- list()

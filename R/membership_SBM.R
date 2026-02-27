@@ -19,7 +19,10 @@ setRefClass("SBM",
                 else
                 {
                     Z <<- from_cc$Z
-                    if ("B" %in% names(from_cc)) {
+                    if ("nodes_covariates" %in% names(from_cc) && !is.null(from_cc[["nodes_covariates"]])){
+                        nodes_covariates <<- from_cc[["nodes_covariates"]]
+                    }
+                    if ("B" %in% names(from_cc) && length(from_cc[["B"]]) > 0) {
                         B <<- from_cc[["B"]]
                     }
                 }
@@ -36,7 +39,7 @@ setRefClass("SBM",
                 }
             }
             # TODO Add a check in user function to assert nodes_covariates size, where defined is correct
-            if (length(nodes_covar) > 0) {
+            if (!is.null(nodes_covar)) {
                 nodes_covariates <<- nodes_covar
             }
 
@@ -84,7 +87,12 @@ setRefClass("SBM",
         },
         ICL_penalty = function()
         {
-            (dim(Z)[2]-1)*log(dim(Z)[1])
+            if (length(B) > 0) {
+                p <- nrow(B)
+            } else {
+                p <- 1
+            }
+            p * (dim(Z)[2]-1)*log(dim(Z)[1])
         },
         merges = function()
         {
