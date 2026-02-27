@@ -96,7 +96,9 @@ struct SBM
         {
             B = optimize_softmax(nodes_covariates, Z);
             alphamat = softmax(nodes_covariates * B);
-            return accu(Z * log(alphamat).t());
+            mat cross_Z_alpha = Z * log(alphamat).t();
+
+            return accu(cross_Z_alpha.diag());
         }
 
         alpha = sum(Z,0) / Z.n_rows;

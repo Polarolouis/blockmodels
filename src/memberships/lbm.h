@@ -151,7 +151,10 @@ struct LBM
         {
             B = optimize_softmax(row_covariates, Z1);
             alpha1mat = softmax(row_covariates * B);
-            dim1_out = accu(Z1 * log(alpha1mat).t());
+            // What we want to sum is the diagonal of the below matrix
+            // when we multiply pi_{i,q} and tau_{i,q} not tau_{j,q}
+            mat cross_Z1_alpha1 = Z1 * log(alpha1mat).t();
+            dim1_out = accu(cross_Z1_alpha1.diag());
         }
         else
         {
@@ -162,7 +165,8 @@ struct LBM
         {
             G = optimize_softmax(col_covariates, Z2);
             alpha2mat = softmax(col_covariates * G);
-            dim2_out = accu(Z2 * log(alpha2mat).t());
+            mat cross_Z2_alpha2 = Z2 * log(alpha2mat).t();
+            dim2_out = accu(cross_Z2_alpha2.diag());
         }
         else
         {
