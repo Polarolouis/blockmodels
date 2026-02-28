@@ -47,6 +47,6 @@ test_that("BM_gaussian_multivariate LBM estimation runs", {
   M1 <- Z1 %*% Mu1 %*% t(Z2) + Noise1
   M2 <- Z1 %*% Mu2 %*% t(Z2) + 10 * Noise1 + Noise2
 
-  model <- BM_gaussian_multivariate("LBM", list(M1, M2), plotting = "", explore_min = 2, explore_max = 2, ncores = 2, verbosity = 0)
+  model <- BM_gaussian_multivariate("LBM", list(M1, M2), plotting = "", explore_min = 2, explore_max = 3, ncores = 2, verbosity = 0)
   expect_model_estimation(model)
 })
