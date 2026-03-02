@@ -48,7 +48,7 @@ double objective_gradient(
     double L = accu(T % logP);
 
     mat P = softmax(Z);
-
+    // To verify
     vec s = sum(T, 1);
     mat SP = P;
     SP.each_col() %= s;
@@ -102,6 +102,10 @@ mat optimize_softmax(
     int q = R - 1;
     int nparam = p * q;
     int last_iter = 0;
+    #ifdef DEBUG_M
+    int no_h_iter = 0;
+    #endif
+
     // only R-1 columns optimized
     mat Btilde(p, q, fill::zeros);
     mat grad;
@@ -142,7 +146,7 @@ mat optimize_softmax(
         double rel_obj_diff = std::abs(Lnew - L) / (1.0 + std::abs(L));
 
         vec s = vectorise(Btilde - Bold);
-        vec y = gnew - gold;
+        vec y = gold - gnew; // Because we maximize
         double ys = dot(y, s);
 
         if (ys > 1e-12)
@@ -155,6 +159,9 @@ mat optimize_softmax(
         }
         else
         {
+        #ifdef DEBUG_M
+            no_h_iter += 1;
+        #endif
             H.eye();
         }
 
@@ -167,8 +174,13 @@ mat optimize_softmax(
         if (norm(gnew, 2) < tol)
             break;
         #ifdef DEBUG_M
-        if (iter % 50 == 0 || iter == max_iter - 1) {
+        if (iter <= 10  || iter == max_iter - 1) {
         Rcpp::Rcout << "Iteration " << iter + 1 << "/" << max_iter << ": L = " << Lnew << endl;
+        Rcpp::Rcout << "<yk, sk> = " << ys << endl;
+        Rcpp::Rcout << "grad(xk+1) - grad(xk) = " << y << endl;
+        Rcpp::Rcout << "xk+1 - xk = alphak*pk = " << s << endl;
+        Rcpp::Rcout << no_h_iter << " steps without H update on " << iter << " steps" << endl;
+        Rcpp::Rcout << "H:" << H << endl;
         }
         #endif
     }
