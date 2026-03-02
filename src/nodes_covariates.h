@@ -101,7 +101,7 @@ mat optimize_softmax(
     int R = T.n_cols;
     int q = R - 1;
     int nparam = p * q;
-
+    int last_iter = 0;
     // only R-1 columns optimized
     mat Btilde(p, q, fill::zeros);
     mat grad;
@@ -159,6 +159,7 @@ mat optimize_softmax(
         }
 
         L = Lnew;
+        last_iter = iter;
 
         if (rel_obj_diff < tol)
             break;
@@ -170,6 +171,10 @@ mat optimize_softmax(
         Rcpp::Rcout << "Iteration " << iter + 1 << "/" << max_iter << ": L = " << Lnew << endl;
         }
         #endif
+    }
+
+    if (last_iter >= max_iter) {
+        Rcpp::warning("Optimization for nodes covariates did not converge after %i steps.", last_iter);
     }
 
     return build_full_B(Btilde);
