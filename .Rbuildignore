@@ -7,3 +7,4 @@ orig$
 LICENSE
 .vscode
 dev
+^\.github$
