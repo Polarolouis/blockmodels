@@ -72,7 +72,7 @@ double line_search_bfgs(
     const double c1 = 1e-4;
     const double slope = accu(grad % direction);
 
-    if (slope <= 0.0)
+    if (!std::isfinite(slope) || slope <= 0.0 || !std::isfinite(L))
         return 0.0;
 
     for (int i = 0; i < 25; i++)
@@ -80,6 +80,11 @@ double line_search_bfgs(
         mat Bnew = Btilde + alpha * direction;
         mat gtmp;
         double Lnew = objective_gradient(X, T, Bnew, gtmp);
+
+        if (!std::isfinite(Lnew) || !gtmp.is_finite()) {
+            alpha *= 0.5;
+            continue;
+        }
 
         // Armijo condition for maximization
         if (Lnew >= L + c1 * alpha * slope)
@@ -93,9 +98,7 @@ double line_search_bfgs(
 
 mat optimize_softmax(
     const mat &X,
-    const mat &T,
-    int max_iter = 1000,
-    double tol = 1e-4)
+    const mat &T)
 {
     int p = X.n_cols;
     int R = T.n_cols;
@@ -112,16 +115,33 @@ mat optimize_softmax(
 
     double L = objective_gradient(X, T, Btilde, grad);
 
+    if (!std::isfinite(L) || !grad.is_finite()) {
+        Rcpp::warning("Optimization for nodes covariates started from non-finite objective/gradient.");
+
+        return build_full_B(Btilde);
+    }
+
     mat H = eye<mat>(nparam, nparam); // inverse Hessian approximation
 
     for (int iter = 0; iter < BFGS_ITER_MAX; iter++)
     {
         vec g = vectorise(grad);
+        if (!g.is_finite()) {
+            Rcpp::warning("Optimization for nodes covariates encountered non-finite gradient.");
+            break;
+        }
+
+
 
         if (norm(g, 2) < TOL_NODE_COV)
             break;
 
         vec d = H * g; // ascent direction (maximize)
+
+        if (!d.is_finite()) {
+            d = g;
+            H.eye();
+        }
 
         if (dot(g, d) <= 0.0)
         {
@@ -132,7 +152,7 @@ mat optimize_softmax(
         mat direction = reshape(d, p, q);
         double step = line_search_bfgs(X, T, Btilde, grad, direction, L);
 
-        if (step <= 0.0)
+        if (!std::isfinite(step) || step <= 0.0)
             break;
 
         mat Bold = Btilde;
@@ -143,19 +163,29 @@ mat optimize_softmax(
         double Lnew = objective_gradient(X, T, Btilde, grad);
         vec gnew = vectorise(grad);
 
+        if (!std::isfinite(Lnew) || !gnew.is_finite()) {
+            Btilde = Bold;
+            grad = reshape(gold, p, q);
+            H.eye();
+            break;
+        }
+
         double rel_obj_diff = std::abs(Lnew - L) / (1.0 + std::abs(L));
 
         vec s = vectorise(Btilde - Bold);
         vec y = gold - gnew; // Because we maximize
         double ys = dot(y, s);
 
-        if (ys > 1e-12)
+        if (std::isfinite(ys) && ys > 1e-12 && s.is_finite() && y.is_finite())
         {
             double rho = 1.0 / ys;
             mat I = eye<mat>(nparam, nparam);
             mat syT = s * y.t();
             mat ysT = y * s.t();
             H = (I - rho * syT) * H * (I - rho * ysT) + rho * (s * s.t());
+            if (!H.is_finite()) {
+                H.eye();
+            }
         }
         else
         {
