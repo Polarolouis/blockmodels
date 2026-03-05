@@ -107,18 +107,18 @@ mat optimize_softmax(
     #endif
 
     // only R-1 columns optimized
-    mat Btilde(p, q, fill::zeros);
+    mat Btilde(p, q, fill::randu);
     mat grad;
 
     double L = objective_gradient(X, T, Btilde, grad);
 
     mat H = eye<mat>(nparam, nparam); // inverse Hessian approximation
 
-    for (int iter = 0; iter < max_iter; iter++)
+    for (int iter = 0; iter < BFGS_ITER_MAX; iter++)
     {
         vec g = vectorise(grad);
 
-        if (norm(g, 2) < tol)
+        if (norm(g, 2) < TOL_NODE_COV)
             break;
 
         vec d = H * g; // ascent direction (maximize)
@@ -168,14 +168,14 @@ mat optimize_softmax(
         L = Lnew;
         last_iter = iter;
 
-        if (rel_obj_diff < tol)
+        if (rel_obj_diff < TOL_NODE_COV)
             break;
 
-        if (norm(gnew, 2) < tol)
+        if (norm(gnew, 2) < TOL_NODE_COV)
             break;
         #ifdef DEBUG_M
-        if (iter <= 10  || iter == max_iter - 1) {
-        Rcpp::Rcout << "Iteration " << iter + 1 << "/" << max_iter << ": L = " << Lnew << endl;
+        if (iter <= 10  || iter == BFGS_ITER_MAX - 1) {
+        Rcpp::Rcout << "Iteration " << iter + 1 << "/" << BFGS_ITER_MAX << ": L = " << Lnew << endl;
         Rcpp::Rcout << "<yk, sk> = " << ys << endl;
         Rcpp::Rcout << "grad(xk+1) - grad(xk) = " << y << endl;
         Rcpp::Rcout << "xk+1 - xk = alphak*pk = " << s << endl;
@@ -185,7 +185,7 @@ mat optimize_softmax(
         #endif
     }
 
-    if (last_iter >= max_iter) {
+    if (last_iter >= BFGS_ITER_MAX) {
         Rcpp::warning("Optimization for nodes covariates did not converge after %i steps.", last_iter);
     }
 
