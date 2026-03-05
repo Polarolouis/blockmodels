@@ -137,3 +137,40 @@ cube apply_matrix_on_tubes(mat & M, cube & C)
 
     return(C2);
 }
+
+inline
+double logsumexp(vec & x) {
+    
+    double M = x.max();
+    double lse = 0;
+
+    for(unsigned int i=0;i<x.n_elem; i++){
+        lse += exp(x(i)-M);
+    }
+    lse = log(lse)+M;
+
+    return(lse);
+}
+
+
+inline
+rowvec softmax(vec & x, bool clamp = true) {
+    
+    double M = x.max();
+    rowvec smax(x.n_elem, fill::zeros);
+    smax.zeros();
+    double normsum = 0;
+
+    for(unsigned int i=0;i<x.n_elem; i++){
+        double z = exp(x(i)-M);
+        normsum += z;
+        smax(i) = z;
+    }
+    
+    for(unsigned int i=0;i<x.n_elem; i++){
+        smax(i) /= normsum;
+    }
+    if (clamp) smax.clamp(1e-6, 1-1e-6);
+
+    return(smax);
+}

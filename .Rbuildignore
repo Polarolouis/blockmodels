@@ -5,3 +5,6 @@ HOWTO_WRITE_A_MODEL
 mkpkg$
 orig$
 LICENSE
+.vscode
+dev
+^\.github$

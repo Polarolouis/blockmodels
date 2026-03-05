@@ -5,7 +5,7 @@ BM_bernoulli_covariates_fast <- setRefClass("BM_bernoulli_covariates_fast",
     methods = list(
         initialize = function(membership_type,adj,covariates,...)
         {
-            if(class(covariates)=="matrix")
+            if(inherits(covariates, "matrix"))
             {
                 covariates_list <- list(covariates)
             }
