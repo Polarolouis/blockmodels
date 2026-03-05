@@ -1,0 +1,18 @@
+# blockmodels: Latent and Stochastic Block Model Estimation by a 'V-EM' Algorithm
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/Polarolouis/blockmodels/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Polarolouis/blockmodels/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/Polarolouis/blockmodels/graph/badge.svg)](https://app.codecov.io/gh/Polarolouis/blockmodels)
+<!-- badges: end -->
+
+Latent and Stochastic Block Model estimation by a Variational EM algorithm. Various probability distribution are provided (Bernoulli, Poisson...), with or without covariates.
+
+## Installation
+
+```R
+install.packages("blockmodels")
+```
+
+## Documentation
+
+The package documentation is available on [CRAN](https://cran.r-project.org/web/packages/blockmodels/index.html) and (will be) on [GitHub](https://grosssbm.github.io/blockmodels/).
