@@ -28,8 +28,18 @@ jobs:
           needs: coverage
 
       - name: Test coverage
-        run: covr::codecov()
+        run: |
+          cov <- covr::package_coverage(
+            quiet = FALSE,
+            clean = FALSE,
+            install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"), "package")
+          )     
+          print(cov)
+          covr::to_cobertura(cov, filename = "cobertura.xml")
+          #covr::codecov(coverage=cov)
         shell: Rscript {0}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - uses: codecov/codecov-action@v5
         with:
