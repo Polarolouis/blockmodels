@@ -4,7 +4,7 @@
 
 [![R-CMD-check](https://github.com/Polarolouis/blockmodels/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Polarolouis/blockmodels/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
-coverage](https://codecov.io/gh/Polarolouis/blockmodels/graph/badge.svg)](https://app.codecov.io/gh/Polarolouis/blockmodels)
+coverage](https://codecov.io/gh/Polarolouis/blockmodels/branch/master/graph/badge.svg)](https://app.codecov.io/gh/Polarolouis/blockmodels)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/blockmodels)](https://CRAN.R-project.org/package=blockmodels)
 <!-- badges: end -->
