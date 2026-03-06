@@ -177,7 +177,7 @@ setRefClass("model",
                     do_with_inits(
                         list(getRefClass(membership_name)(
                             network_size=.self$number_of_nodes(), 
-                            nodes_covar = .self$nodes_covariates[["nodes"]])),
+                            nodes_covar = .self$nodes_covariates[["node"]])),
                         1,reinitialization_effort)
 
                 }

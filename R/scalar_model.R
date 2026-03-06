@@ -28,11 +28,11 @@ setRefClass("scalar_model",
                     if (length(nodes_covariates) > 1) {
                         stop(paste("Multiple nodes covariates given for SBM.", "Should only be a list with one matrix."))
                     }
-                    if (nrow(nodes_covariates[["nodes"]]) != nrow(adj)) {
+                    if (nrow(nodes_covariates[["node"]]) != nrow(adj)) {
                         stop(paste("The number of rows of the node covariates matrix must match the number of nodes."))
                     }
-                    if (is.null(names(nodes_covariates)) || names(nodes_covariates) != "nodes") {
-                        stop(paste("For SBM node covariates matrix must be named 'nodes'."))
+                    if (is.null(names(nodes_covariates)) || names(nodes_covariates) != "node") {
+                        stop(paste("For SBM node covariates matrix must be named 'node'."))
                     }
                 }
                 if (membership_name == "LBM") {
@@ -90,7 +90,7 @@ setRefClass("scalar_model",
                     Z[,q] <- Z[,q]*sub_classif
                     Z[,Q+1] <- Z[,Q+1]*(1-sub_classif)
                     result <- c(result, list(
-                            getRefClass(membership_name)(from_cc=list(Z=Z), nodes_covar = .self$nodes_covariates[["nodes"]])
+                            getRefClass(membership_name)(from_cc=list(Z=Z), nodes_covar = .self$nodes_covariates[["node"]])
                         ))
                 }
                 return(result)
@@ -244,7 +244,7 @@ setRefClass("scalar_model",
                                 as.matrix(precomputed$eigen$vectors[,1:Q]),
                                 Q
                             ),
-                            nodes_covar = .self$nodes_covariates[["nodes"]]
+                            nodes_covar = .self$nodes_covariates[["node"]]
                         )
                     )
                 )

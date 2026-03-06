@@ -13,7 +13,7 @@ test_that("multivariate SBM split keeps nodes covariates", {
   model <- BM_gaussian_multivariate(
     "SBM",
     list(M1, M2),
-    nodes_covariates = list(nodes = X),
+    nodes_covariates = list(node = X),
     plotting = "",
     verbosity = 0
   )
