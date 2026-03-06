@@ -8,3 +8,7 @@ LICENSE
 .vscode
 dev
 ^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^README\.Rmd$
