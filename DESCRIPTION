@@ -4,8 +4,6 @@ Title: Latent and Stochastic Block Model Estimation by a 'V-EM'
         Algorithm
 Version: 1.2.0
 Date: 2026-03-05
-Author: Jean-Benoist Leger <jbleger@hds.utc.fr>, Pierre Barbillon <pierre.barbillon@agroparistech.fr>, Julien Chiquet <julien.chiquet@inrae.fr>, Louis Lacoste <louis.lacoste@inrae.fr>
-Maintainer: Jean-Benoist Leger <jbleger@hds.utc.fr>
 Description: Latent and Stochastic Block Model estimation by a Variational EM algorithm.
              Various probability distribution are provided (Bernoulli,
              Poisson...), with or without covariates.
@@ -23,3 +21,9 @@ Suggests:
 Config/testthat/edition: 3
 URL: https://github.com/jb-leger/blockmodels
 BugReports: https://github.com/jb-leger/blockmodels/issues
+Authors@R: c(
+    person("Jean-Benoist", "Leger", , "jbleger@hds.utc.fr", role = c("aut", "cre")),
+    person("Pierre", "Barbillon", , "pierre.barbillon@agroparistech.fr", role = "aut"),
+    person("Julien", "Chiquet", , "julien.chiquet@inrae.fr", role = "aut"),
+    person("Louis", "Lacoste", , "louis.lacoste@inrae.fr", role = "aut")
+  )

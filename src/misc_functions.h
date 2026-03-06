@@ -1,4 +1,3 @@
-
 template<class T>
 inline
 void boundaries(T & obj, double b1, double b2)
