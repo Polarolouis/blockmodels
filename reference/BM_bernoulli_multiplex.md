@@ -97,7 +97,7 @@ BM_bernoulli_multiplex(
 - nodes_covariates:
 
   A list containing the (optional) nodes covariates. For SBM or SBM_sym,
-  the list must contain one element named 'nodes', a matrix with as many
+  the list must contain one element named 'node', a matrix with as many
   rows as the number of nodes. For the LBM membership type, the list may
   contain one or two elements, named 'row' or 'col', the elements must
   be matrices with the number of rows corresponding to the number of
