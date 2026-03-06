@@ -41,6 +41,12 @@ jobs:
           #covr::codecov(coverage=cov)
         shell: Rscript {0}
 
+      - name: Debug files
+        run: |
+          pwd
+          ls -lah
+          find . -name "*.xml"
+
       - uses: codecov/codecov-action@v5
         with:
           # Fail if error if not on PR, or if on PR and token is given
