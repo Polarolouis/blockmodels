@@ -110,7 +110,7 @@ mat optimize_softmax(
     #endif
 
     // only R-1 columns optimized
-    mat Btilde(p, q, fill::randu);
+    mat Btilde(p, q);
     mat grad;
 
     double L = objective_gradient(X, T, Btilde, grad);
@@ -221,3 +221,12 @@ mat optimize_softmax(
 
     return build_full_B(Btilde);
 }
+
+mat compute_B(const mat &X, const mat &T) {
+
+    vec ref_tau = T.col(T.n_cols-1);
+    mat log_unscaled_T = log(T.each_col() / ref_tau);
+    mat pseudo_inv = pinv(X);
+
+    return pseudo_inv * log_unscaled_T;
+};
