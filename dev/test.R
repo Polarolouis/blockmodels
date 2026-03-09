@@ -1,7 +1,7 @@
 devtools::load_all()
 
 set.seed(123)
-npc <- 500 # nodes per class
+npc <- 50 # nodes per class
 Q <- 3 # classes
 n <- npc * Q # nodes
 
