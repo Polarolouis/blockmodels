@@ -27,6 +27,14 @@ Z <- t(sapply(seq_along(Z_factor), function(idx) {
     vec
 }))
 
+# Exp with Sophie's discovery
+taus <- pZ  # + rnorm(npc * ncol(pZ), sd = 3) taus <- softmax_rows(taus)
+
+unscaled_taus <- taus/taus[,ncol(taus)]
+
+(t(X)%*%X)^(-1)%*%t(X) %*% log(unscaled_taus)
+
+
 indata <- data.frame(Z = as.factor(Z_factor), X)
 indata$Z <- relevel(indata$Z, ref = paste(ncol(B)))
 
@@ -37,6 +45,17 @@ P <- matrix(runif(Q * Q), Q, Q)
 M <- 1 * (matrix(runif(n * n), n, n) < Z %*% P %*% t(Z)) ## adjacency matrix
 
 devtools::load_all()
-fit <- BM_bernoulli(membership_type = "SBM", adj = M, plotting = character(0), ncores = 1L, nodes_covariates = list(node = matrix(X, ncol = 1)), verbosity = 6)
+library(microbenchmark)
+mb_explicit <- microbenchmark("explicit" = {
+fit <- BM_bernoulli(membership_type = "SBM", adj = M, plotting = '', ncores = 1L, nodes_covariates = list(node = matrix(X, ncol = 1)), verbosity = 0)
 fit$estimate()
+}, times = 10L)
+
+devtools::load_all()
+mb_optim <- microbenchmark("optim" = {
+fit_optim <- BM_bernoulli(membership_type = "SBM", adj = M, plotting = '', ncores = 1L, nodes_covariates = list(node = matrix(X, ncol = 1)), verbosity = 0)
+fit_optim$estimate()
+}, times = 10L)
+
 fit$memberships[[which.max(fit$ICL)]]$B
+fit_optim$memberships[[which.max(fit$ICL)]]$B
