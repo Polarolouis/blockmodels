@@ -149,7 +149,7 @@ struct LBM
         double dim2_out = 0;
         if (has_row_covariates && Z1.n_cols > 1)
         {
-            B = optimize_softmax(row_covariates, Z1);
+            B = compute_B(row_covariates, Z1);
             alpha1mat = softmax(row_covariates * B);
 
             alpha1mat = clamp(alpha1mat, MIN_VAL, 1.0 - MIN_VAL);
@@ -169,7 +169,7 @@ struct LBM
         }
         if (has_col_covariates && Z2.n_cols > 1)
         {
-            G = optimize_softmax(col_covariates, Z2);
+            G = compute_B(col_covariates, Z2);
             alpha2mat = softmax(col_covariates * G);
 
             alpha2mat = clamp(alpha2mat, MIN_VAL, 1.0 - MIN_VAL);
