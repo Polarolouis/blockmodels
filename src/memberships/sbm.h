@@ -94,7 +94,7 @@ struct SBM
     {
         if (has_nodes_covariates && Z.n_cols > 1)
         {
-            B = optimize_softmax(nodes_covariates, Z);
+            B = compute_B(nodes_covariates, Z); //compute_B
             alphamat = softmax(nodes_covariates * B);
 
             alphamat = clamp(alphamat, MIN_VAL, 1.0 - MIN_VAL);
