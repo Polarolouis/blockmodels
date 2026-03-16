@@ -1,6 +1,6 @@
 library(nnet)
 
-npc <- 100
+npc <- 150
 Q <- 3
 n <- npc * Q
 
@@ -57,5 +57,16 @@ fit_optim <- BM_bernoulli(membership_type = "SBM", adj = M, plotting = '', ncore
 fit_optim$estimate()
 }, times = 10L)
 
-fit$memberships[[which.max(fit$ICL)]]$B
-fit_optim$memberships[[which.max(fit$ICL)]]$B
+reorder_beta <- function(fit) {
+max_idx <- which.max(fit$ICL)
+fit$memberships[[max_idx]]$B
+
+orderLabels <- order(colMeans(fit$memberships[[max_idx]]$alpha) %*%
+fit$model_parameters[[max_idx]]$pi, decreasing = TRUE)
+beta_hat <- matrix(fit$memberships[[max_idx]]$B[,orderLabels],ncol = max_idx)
+
+beta_tilde <- beta_hat - beta_hat[,ncol(beta_hat)]
+beta_tilde
+}
+
+reorder_beta(fit_optim)
