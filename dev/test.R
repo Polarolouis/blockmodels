@@ -1,10 +1,20 @@
 devtools::load_all()
 
 set.seed(123)
-npc <- 50 # nodes per class
+npc <- 150 # nodes per class
 Q <- 3 # classes
 n <- npc * Q # nodes
 
+reorder_beta <- function(fit) {
+max_idx <- which.max(fit$ICL)
+fit$memberships[[max_idx]]$B
+
+orderLabels <- order(diag(fit$model_parameters[[max_idx]]$pi), decreasing = TRUE)
+beta_hat <- matrix(fit$memberships[[max_idx]]$B[,orderLabels],ncol = max_idx)
+
+beta_tilde <- beta_hat - beta_hat[,ncol(beta_hat)]
+beta_tilde
+}
 
 col_covariates <- cbind(1,
                         c(rep(6, npc), rep(0, npc), rep(-1,npc)),
@@ -128,7 +138,8 @@ sbm$estimate()
 
 sbm_cov_gradient <- BM_bernoulli(membership_type = "SBM", adj = M, plotting = character(0), ncores = 1L, nodes_covariates = list(node = row_covariates), verbosity = 6)
 sbm_cov_gradient$estimate()
-
+sbm_cov_gradient$memberships[[3]]$B
+reorder_beta(sbm_cov_gradient)
 
 sbm_cov_bfgs <- BM_bernoulli(membership_type = "SBM", adj = M, plotting = character(0), ncores = 1L, nodes_covariates = list(nodes = row_covariates), verbosity = 6)
 sbm_cov_bfgs$estimate()
