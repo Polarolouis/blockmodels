@@ -96,6 +96,15 @@ double line_search_bfgs(
     return 0.0;
 }
 
+mat approx_B(const mat &X, const mat &T) {
+
+    vec ref_tau = T.col(T.n_cols-1);
+    mat log_unscaled_T = log(T.each_col() / ref_tau);
+    mat pseudo_inv = pinv(X);
+
+    return pseudo_inv * log_unscaled_T;
+};
+
 mat optimize_softmax(
     const mat &X,
     const mat &T)
@@ -112,6 +121,8 @@ mat optimize_softmax(
     // only R-1 columns optimized
     mat Btilde(p, q);
     mat grad;
+
+    Btilde = approx_B(X, T).cols(1,q);
 
     double L = objective_gradient(X, T, Btilde, grad);
 
@@ -221,12 +232,3 @@ mat optimize_softmax(
 
     return build_full_B(Btilde);
 }
-
-mat compute_B(const mat &X, const mat &T) {
-
-    vec ref_tau = T.col(T.n_cols-1);
-    mat log_unscaled_T = log(T.each_col() / ref_tau);
-    mat pseudo_inv = pinv(X);
-
-    return pseudo_inv * log_unscaled_T;
-};
