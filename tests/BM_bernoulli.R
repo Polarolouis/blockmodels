@@ -76,14 +76,14 @@ stopifnot(all(is.finite(my_model_na$ICL)))
 
 M_all_na <- matrix(NA_real_, nrow(M_na), ncol(M_na))
 has_error <- FALSE
-# tryCatch(
-# 	{
+tryCatch(
+	{
 		my_model_all_na <- BM_bernoulli("SBM", M_all_na, plotting='', explore_min=2, explore_max=2, ncores=1, verbosity=0)
 		my_model_all_na$estimate()
-# 	},
-# 	error = function(e)
-# 	{
-# 		has_error <<- TRUE
-# 	}
-# )
+	},
+	error = function(e)
+	{
+		has_error <<- TRUE
+	}
+)
 stopifnot(has_error)
