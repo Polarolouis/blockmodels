@@ -71,7 +71,7 @@ setRefClass("scalar_model",
         {
             paste(nrow(adj),"x",ncol(adj),"scalar network")
         },  
-        network_to_cc = function() { list(adjacency = adj) },
+        network_to_cc = function() { list(adjacency = adj, na_replace_value = 0) },
         split_membership_model = function(Q)
         {
             membership <- memberships[[Q]]
@@ -333,7 +333,9 @@ setRefClass("scalar_model",
         plot_transform = function(x){x},
         residual = function(Q)
         {
-            adj-.self$prediction(Q)
+            non_na_adj <- adj
+            non_na_adj[is.na(adj)] <- 0
+            non_na_adj-.self$prediction(Q)
         }
 
             
