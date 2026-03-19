@@ -21,6 +21,7 @@ class gaussian
          * See poisson_covariates model for example
          */
         mat adj;
+        mat maskNA;
 
         //precomputed matrix for SBM
         mat adjZD;
@@ -36,6 +37,8 @@ class gaussian
         //precomputed value for likilhood
         double accu_adj_square;
         double accu_adjZD_square;
+        double n_obs;
+        double n_obs_ZD;
         
 
 
@@ -58,17 +61,26 @@ class gaussian
              * adjacency matrix, and the i-th matrix is the matrix of the i-th
              * covariate on all edges.
              */
-            adj = Rcpp::as<mat>(network_from_R["adjacency"]);
+            mat adj_orig = Rcpp::as<mat>(network_from_R["adjacency"]);
+            double na_replace_value = 0;
+            if(network_from_R.containsElementNamed("na_replace_value"))
+            {
+                na_replace_value = Rcpp::as<double>(network_from_R["na_replace_value"]);
+            }
+            maskNA = compute_mask(adj_orig);
+            adj = replace_missing_values(adj_orig, na_replace_value) % maskNA;
 
             adjZD = fill_diag(adj,0);
             adjt = adj.t();
-            Mones = ones<mat>(adj.n_rows,adj.n_cols);
+            Mones = maskNA;
             Monest = Mones.t();
             adjZDt = adjZD.t();
             MonesZD = fill_diag(Mones,0);
 
             accu_adj_square = accu( adj % adj );
             accu_adjZD_square = accu( adjZD % adjZD );
+            n_obs = accu(Mones);
+            n_obs_ZD = accu(MonesZD);
         }
     };
 
@@ -265,15 +277,23 @@ double m_step(SBM & membership,
               gaussian & model,
               gaussian::network & net)
 {
+    mat effective_counts = membership.Z.t() * net.MonesZD * membership.Z;
+    if(net.n_obs_ZD<=0)
+    {
+        Rcpp::stop("No valid non-missing off-diagonal adjacency values in gaussian SBM network.");
+    }
+    mat safe_counts = effective_counts;
+    safe_counts.elem(find(safe_counts<=0)).ones();
+
     model.mu = (membership.Z.t() * net.adjZD * membership.Z)
                 /
-               (membership.Z.t() * net.MonesZD * membership.Z);
+               safe_counts;
     
     double all_accu_except_square_adj = accu(
             (
                 (model.mu % model.mu)
                 %
-                (membership.Z.t() * net.MonesZD * membership.Z)
+                effective_counts
             )
             -
             (
@@ -283,13 +303,13 @@ double m_step(SBM & membership,
             )
         );
 
-    model.sigma2 = 1.0/(membership.Z.n_rows * membership.Z.n_rows) * (
+    model.sigma2 = 1.0/net.n_obs_ZD * (
             net.accu_adjZD_square + all_accu_except_square_adj
         );
 
     return
         (
-            -.5*(membership.Z.n_rows * (membership.Z.n_rows-1))*log(2*M_PI*model.sigma2)
+            -.5*net.n_obs_ZD*log(2*M_PI*model.sigma2)
             -1.0/(2*model.sigma2)*(net.accu_adjZD_square + all_accu_except_square_adj)
         );
 }
@@ -339,15 +359,23 @@ double m_step(LBM & membership,
               gaussian & model,
               gaussian::network & net)
 {
+    mat effective_counts = membership.Z1.t() * net.Mones * membership.Z2;
+    if(net.n_obs<=0)
+    {
+        Rcpp::stop("No valid non-missing adjacency values in gaussian LBM network.");
+    }
+    mat safe_counts = effective_counts;
+    safe_counts.elem(find(safe_counts<=0)).ones();
+
     model.mu = (membership.Z1.t() * net.adj * membership.Z2)
                 /
-               (membership.Z1.t() * net.Mones * membership.Z2);
+               safe_counts;
     
     double all_accu_except_square_adj = accu(
             (
                 (model.mu % model.mu)
                 %
-                (membership.Z1.t() * net.Mones * membership.Z2)
+                effective_counts
             )
             -
             (
@@ -357,13 +385,13 @@ double m_step(LBM & membership,
             )
         );
 
-    model.sigma2 = 1.0/(membership.Z1.n_rows * membership.Z2.n_rows) * (
+    model.sigma2 = 1.0/net.n_obs * (
             net.accu_adj_square + all_accu_except_square_adj
         );
 
     return
         (
-            -.5*(membership.Z1.n_rows*membership.Z2.n_rows)*log(2*M_PI*model.sigma2)
+            -.5*net.n_obs*log(2*M_PI*model.sigma2)
             -1.0/(2*model.sigma2)*(net.accu_adj_square + all_accu_except_square_adj)
         );
 }
