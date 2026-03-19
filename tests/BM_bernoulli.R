@@ -57,7 +57,7 @@ which.max(my_model$ICL)
 ##
 ## NA handling (SBM)
 ##
-devtools::load_all()
+
 npc_na <- 10
 Q_na <- 2
 n_na <- npc_na * Q_na
