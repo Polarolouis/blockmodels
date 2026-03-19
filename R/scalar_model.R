@@ -161,17 +161,18 @@ setRefClass("scalar_model",
         },
         data_number = function()
         {
+            mask <- !is.na(adj)
             if(membership_name=="SBM")
             {
-                return(dim(adj)[1]*(dim(adj)[1]-1))
+                return(sum(mask) - sum(diag(mask)))
             }
             if(membership_name=="SBM_sym")
             {
-                return(dim(adj)[1]*(dim(adj)[1]-1)/2)
+                return((sum(mask) - sum(diag(mask)))/2)
             }
             else
             {
-                return(dim(adj)[1]*(dim(adj)[2]))
+                return(sum(mask))
             }
         },
         precompute = function()
