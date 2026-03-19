@@ -7,6 +7,7 @@ class bernoulli
     {
         public:
         mat adj; // adjacency matrix
+        mat maskNA;
 
         // precalculated matrices for SBM
         mat adjZD; 
@@ -25,18 +26,24 @@ class bernoulli
         network(Rcpp::List & network_from_R)
         {
             mat adj_orig = network_from_R["adjacency"];
+            double na_replace_value = 0;
+            if(network_from_R.containsElementNamed("na_replace_value"))
+            {
+                na_replace_value = Rcpp::as<double>(network_from_R["na_replace_value"]);
+            }
 
-            adj = adj_orig;
+            maskNA = compute_mask(adj_orig);
+            adj = replace_missing_values(adj_orig, na_replace_value) % maskNA;
             adjZD = fill_diag(adj,0);
-            ones_minus_adj_ZD = fill_diag(1-adj,0);
+            ones_minus_adj_ZD = fill_diag(maskNA-adj,0);
             adjZDt = adjZD.t();
             ones_minus_adj_ZDt = ones_minus_adj_ZD.t();
-            onesZD = fill_diag(ones<mat>(adj.n_rows, adj.n_rows),0);
+            onesZD = fill_diag(maskNA,0);
 
-            ones_minus_adj = 1-adj;
+            ones_minus_adj = maskNA-adj;
             adjt = adj.t();
             ones_minus_adjt = ones_minus_adj.t();
-            adj_ones = ones<mat>(adj.n_rows, adj.n_cols);
+            adj_ones = maskNA;
 
         }
     };
@@ -106,9 +113,17 @@ template<>
 inline
 double m_step(SBM & membership, bernoulli & model, bernoulli::network & net)
 {
+    mat effective_counts = membership.Z.t() * net.onesZD * membership.Z;
+    if(accu(effective_counts)<=0)
+    {
+        Rcpp::stop("No valid non-missing off-diagonal adjacency values in bernoulli SBM network.");
+    }
+    mat safe_counts = effective_counts;
+    safe_counts.elem(find(safe_counts<=0)).ones();
+
     model.pi = (membership.Z.t() * net.adjZD * membership.Z)
                 /
-               (membership.Z.t() * net.onesZD * membership.Z);
+               safe_counts;
 
     return
         (
@@ -121,7 +136,7 @@ double m_step(SBM & membership, bernoulli & model, bernoulli::network & net)
             accu(
                     log(1-model.pi)
                     %
-                    (membership.Z.t() * net.onesZD * membership.Z)
+                        effective_counts
                 )
         );
 }
@@ -137,9 +152,17 @@ template<>
 inline
 double m_step(LBM & membership, bernoulli & model, bernoulli::network & net)
 {
+    mat effective_counts = membership.Z1.t() * net.adj_ones * membership.Z2;
+    if(accu(effective_counts)<=0)
+    {
+        Rcpp::stop("No valid non-missing adjacency values in bernoulli LBM network.");
+    }
+    mat safe_counts = effective_counts;
+    safe_counts.elem(find(safe_counts<=0)).ones();
+
     model.pi = (membership.Z1.t() * net.adj * membership.Z2)
                 /
-               (membership.Z1.t() * net.adj_ones * membership.Z2);
+               safe_counts;
 
     return
         (
@@ -152,7 +175,7 @@ double m_step(LBM & membership, bernoulli & model, bernoulli::network & net)
             accu(
                     log(1-model.pi)
                     %
-                    (membership.Z1.t() * net.ones_minus_adj * membership.Z2)
+                        (effective_counts - (membership.Z1.t() * net.adj * membership.Z2))
                 )
         );
 }
