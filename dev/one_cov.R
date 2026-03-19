@@ -41,7 +41,9 @@ indata$Z <- relevel(indata$Z, ref = paste(ncol(B)))
 fit_multinom <- multinom(Z ~ 0+X, data=indata)
 summary(fit_multinom)
 
-P <- matrix(runif(Q * Q), Q, Q)
+P <- matrix(c(0.9, 0.5, 0.05,
+              0.3, 0.2, 0.1,
+              0.05, 0.01, 0), byrow = TRUE, nrow = Q)
 M <- 1 * (matrix(runif(n * n), n, n) < Z %*% P %*% t(Z)) ## adjacency matrix
 
 devtools::load_all()
@@ -53,7 +55,7 @@ fit$estimate()
 
 devtools::load_all()
 mb_optim <- microbenchmark("optim" = {
-fit_optim <- BM_bernoulli(membership_type = "SBM", adj = M, plotting = '', ncores = 1L, nodes_covariates = list(node = matrix(X, ncol = 1)), verbosity = 0)
+fit_optim <- BM_bernoulli(membership_type = "SBM", adj = M, plotting = '', ncores = 1L, nodes_covariates = list(node = matrix(X, ncol = 1)), verbosity = 1)
 fit_optim$estimate()
 }, times = 10L)
 
