@@ -177,7 +177,14 @@ rowvec softmax(vec & x, bool clamp = true) {
 mat compute_mask(mat A) {
     mat mask(size(A), fill::ones);
 
-    mask.elem(find_nan(A)) -= 1;
+    mask.elem(find_nonfinite(A)).zeros();
     
     return(mask);
+}
+
+inline
+mat replace_missing_values(mat A, double value)
+{
+    A.elem(find_nonfinite(A)).fill(value);
+    return(A);
 }
