@@ -173,3 +173,11 @@ rowvec softmax(vec & x, bool clamp = true) {
 
     return(smax);
 }
+
+mat compute_mask(mat A) {
+    mat mask(size(A), fill::ones);
+
+    mask.elem(find_nan(A)) -= 1;
+    
+    return(mask);
+}
