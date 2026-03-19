@@ -1,11 +1,10 @@
 library(nnet)
 #library(devtools)
-#devtools::install_github("Polarolouis/blockmodels", force = TRUE)
 library(blockmodels)
-help("multinom")
+library(aricode)
 library("sbm")
 
-
+set.seed(1234)
 n=200
 p = 3
 K = 3
@@ -15,7 +14,7 @@ for(j in 2:(p+1)){
 }
 
 Beta = round(matrix(abs(rnorm((p+1)*K,0,3)),(p+1),K))
-Beta[,1] = 0
+Beta[,K] = 0
 Sign_Beta  = matrix(0,p+1,K)
 for (i in 1:(p+1))
   {
@@ -30,6 +29,26 @@ Beta  = Beta*Sign_Beta
 TAU = exp(X%*% Beta)
 Z = sapply(1:n,function(i){sample(1:3,size=1,replace=FALSE,TAU[i,])})
 
+
+alpha <- matrix(c(0.9, 0.5, 0.05,
+              0.3, 0.2, 0.1,
+              0.05, 0.01, 0), byrow = TRUE, nrow = K)
+Y <- matrix(rbinom(n*n,1,alpha[Z,Z]),n,n)
+
+# sbm
+res_SBM <- estimateSimpleSBM(Y,model="bernoulli", estimOptions = list(plot=FALSE))
+alpha_estim <- res_SBM$connectParam$mean
+ord_2 <- order(apply(alpha_estim,1,sum),decreasing = TRUE)
+tau_estim <- res_SBM$probMemberships[,ord_2]
+Z_estim <-apply(res_SBM$indMemberships[,ord_2],1,which.max)
+ARI(Z, Z_estim)
+
+# blockmodels
+res_bm <- BM_bernoulli(membership_type = "SBM", adj = Y, 
+plotting='', nodes_covariates = list(node = X))
+res_bm$estimate()
+idx_max_ICL <- which.max(res_bm$ICL)
+ARI(Z, res_bm$memberships[[idx_max_ICL]]$map()$C)
 
 
 myTau_1 <- TAU*exp(matrix(rnorm(n*K,0,1),n,K))
