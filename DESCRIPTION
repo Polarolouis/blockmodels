@@ -2,7 +2,7 @@ Package: blockmodels
 Type: Package
 Title: Latent and Stochastic Block Model Estimation by a 'V-EM'
         Algorithm
-Version: 1.2.0
+Version: 1.2.1
 Date: 2026-03-05
 Description: Latent and Stochastic Block Model estimation by a Variational EM algorithm.
              Various probability distribution are provided (Bernoulli,
