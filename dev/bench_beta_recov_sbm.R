@@ -122,6 +122,7 @@ results_df <- future_lapply(seq_len(nrow(conditions)), function(c_idx) {
 }, future.seed = NULL) |> do.call(what = "rbind")
 
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 plot_data <- results_df %>%
   na.omit() %>%
@@ -137,3 +138,18 @@ ggplot(
   aes(x = as.factor(alpha_struct), y = MSE, fill = as.factor(model))
 ) +
   geom_violin(position = "dodge")
+
+# Computing blockmodels vs sbm + multinom on taus
+
+plot_diff_baseline <- plot_data %>% filter(model != "sbm_multinom_Z") %>% pivot_wider(names_from = model, values_from = MSE) %>% mutate(diff_baseline = blockmodels - sbm_multinom_taus) 
+ggplot(
+  plot_diff_baseline,
+  aes(x = as.factor(alpha_struct), y = diff_baseline)
+) +
+  geom_boxplot()
+
+ggplot(
+  plot_diff_baseline %>% filter(alpha_struct != "disassortative"),
+  aes(x = as.factor(alpha_struct), y = diff_baseline)
+) +
+  geom_boxplot()
