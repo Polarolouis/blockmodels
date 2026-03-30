@@ -15,7 +15,6 @@ class poisson_covariates
         public:
          
         mat adj; // adjacency matrix
-        mat maskNA;
         cube covariates; // cube of covariates, two first dimention have the
                          // same size than the ajacency matrix, the 3rd is the
                          // index of covariate.
@@ -33,14 +32,7 @@ class poisson_covariates
 
         network(Rcpp::List & network_from_R)
         {
-            mat adj_orig = Rcpp::as<mat>(network_from_R["adjacency"]);
-            double na_replace_value = 0;
-            if(network_from_R.containsElementNamed("na_replace_value"))
-            {
-                na_replace_value = Rcpp::as<double>(network_from_R["na_replace_value"]);
-            }
-            maskNA = compute_mask(adj_orig);
-            adj = replace_missing_values(adj_orig, na_replace_value) % maskNA;
+            adj = Rcpp::as<mat>(network_from_R["adjacency"]);
 
             Rcpp::List covariates_list = network_from_R["covariates"];
 
@@ -49,7 +41,7 @@ class poisson_covariates
                 covariates.slice(k) = Rcpp::as<mat>(covariates_list[k]);
 
             // precomputation
-            Mones = maskNA;
+            Mones = ones<mat>(adj.n_rows,adj.n_cols);
             adjZD = fill_diag(adj,0);
             adjZDt = adjZD.t();
             MonesZD = fill_diag(Mones,0);

@@ -7,7 +7,6 @@ class poisson
     {
         public:
         mat adj; // adjacency matrix
-        mat maskNA;
 
         // precalculated matrices for SBM
         mat adjZD;
@@ -27,18 +26,12 @@ class poisson
         network(Rcpp::List & network_from_R)
         {
             mat adj_orig = network_from_R["adjacency"];
-            double na_replace_value = 0;
-            if(network_from_R.containsElementNamed("na_replace_value"))
-            {
-                na_replace_value = Rcpp::as<double>(network_from_R["na_replace_value"]);
-            }
 
-            maskNA = compute_mask(adj_orig);
-            adj = replace_missing_values(adj_orig, na_replace_value) % maskNA;
-            adjt = adj.t();
-            Mones = maskNA;
+            adj = adj_orig;
+            adjt = adj_orig.t();
+            Mones = ones<mat>(adj.n_rows,adj.n_cols);
             Monest = Mones.t();
-            adjZD = fill_diag(adj,0);
+            adjZD = fill_diag(adj_orig,0);
             adjZDt = adjZD.t();
             MonesZD = fill_diag(Mones,0);
 
@@ -112,17 +105,9 @@ template<>
 inline
 double m_step(SBM & membership, poisson & model, poisson::network & net)
 {
-    mat effective_counts = membership.Z.t() * net.MonesZD * membership.Z;
-    if(accu(effective_counts)<=0)
-    {
-        Rcpp::stop("No valid non-missing off-diagonal adjacency values in poisson SBM network.");
-    }
-    mat safe_counts = effective_counts;
-    safe_counts.elem(find(safe_counts<=0)).ones();
-
     model.lambda = (membership.Z.t() * net.adjZD * membership.Z)
                     /
-                   safe_counts;
+                   (membership.Z.t() * net.MonesZD * membership.Z);
 
     return
         (
@@ -131,7 +116,7 @@ double m_step(SBM & membership, poisson & model, poisson::network & net)
                     -(
                         model.lambda 
                         % 
-                        effective_counts
+                        (membership.Z.t() * net.MonesZD * membership.Z)
                     )
                     +
                     (
@@ -155,17 +140,9 @@ template<>
 inline
 double m_step(LBM & membership, poisson & model, poisson::network & net)
 {
-    mat effective_counts = membership.Z1.t() * net.Mones * membership.Z2;
-    if(accu(effective_counts)<=0)
-    {
-        Rcpp::stop("No valid non-missing adjacency values in poisson LBM network.");
-    }
-    mat safe_counts = effective_counts;
-    safe_counts.elem(find(safe_counts<=0)).ones();
-
     model.lambda = (membership.Z1.t() * net.adj * membership.Z2)
                     /
-                   safe_counts;
+                   (membership.Z1.t() * net.Mones * membership.Z2);
 
     return
         (
@@ -174,7 +151,7 @@ double m_step(LBM & membership, poisson & model, poisson::network & net)
                     -(
                         model.lambda 
                         % 
-                        effective_counts
+                        (membership.Z1.t() * net.Mones * membership.Z2)
                     )
                     +
                     (
