@@ -27,6 +27,38 @@ test_that("BM_bernoulli SBM handles partial NA values", {
     expect_true(all(is.finite(model$ICL)))
 })
 
+test_that("BM_bernoulli SBM fails gracefully when a row is full of NA", {
+    set.seed(12)
+
+    npc <- 10
+    Q <- 2
+    n <- npc * Q
+    Z <- diag(Q) %x% matrix(1, npc, 1)
+    P <- matrix(runif(Q * Q), Q, Q)
+    M <- 1 * (matrix(runif(n * n), n, n) < Z %*% P %*% t(Z))
+
+    off_diag <- which(row(M) != col(M))
+    for (i in seq(1,n-3)) {
+    M[i,] <- NA_real_
+    M[,i] <- NA_real_
+    }
+
+    model <- BM_bernoulli(
+        "SBM",
+        M,
+        plotting = "",
+        explore_min = 2,
+        explore_max = 6,
+        ncores = 1,
+        verbosity = 0
+    )
+
+    expect_error(
+        model$estimate(),
+        "No valid edges in adjacency matrix. They are all NAs."
+    )
+})
+
 test_that("BM_bernoulli SBM fails gracefully when all values are NA", {
     n <- 20
     M_all_na <- matrix(NA_real_, n, n)
@@ -43,7 +75,7 @@ test_that("BM_bernoulli SBM fails gracefully when all values are NA", {
 
     expect_error(
         model$estimate(),
-        "No valid non-missing off-diagonal adjacency values in bernoulli SBM network\\."
+        "No valid edges in adjacency matrix. They are all NAs."
     )
 })
 
@@ -98,7 +130,7 @@ test_that("BM_bernoulli SBM_sym fails gracefully when all values are NA", {
 
     expect_error(
         model$estimate(),
-        "No valid non-missing off-diagonal adjacency values in bernoulli SBM network\\."
+        "No valid edges in adjacency matrix. They are all NAs."
     )
 })
 
@@ -148,7 +180,7 @@ test_that("BM_bernoulli LBM fails gracefully when all values are NA", {
 
     expect_error(
         model$estimate(),
-        "No valid non-missing adjacency values in bernoulli LBM network\\."
+        "No valid edges in adjacency matrix. They are all NAs."
     )
 })
 
