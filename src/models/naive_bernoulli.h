@@ -7,11 +7,18 @@ class naive_bernoulli
     {
         public:
         mat adj;
+        mat maskNA;
 
         network(Rcpp::List & network_from_R)
         {
             mat adj_orig = network_from_R["adjacency"];
-            adj = adj_orig;
+            double na_replace_value = 0;
+            if(network_from_R.containsElementNamed("na_replace_value"))
+            {
+                na_replace_value = Rcpp::as<double>(network_from_R["na_replace_value"]);
+            }
+            maskNA = compute_mask(adj_orig);
+            adj = replace_missing_values(adj_orig, na_replace_value) % maskNA;
         }
     };
 
@@ -24,7 +31,10 @@ class naive_bernoulli
     {
         n_parameters = membership.Z.n_cols * membership.Z.n_cols;
         pi.set_size(membership.Z.n_cols,membership.Z.n_cols);
-        pi.fill(accu(net.adj)/(net.adj.n_rows*net.adj.n_cols));
+        double n_obs = accu(net.maskNA);
+        if(n_obs<=0)
+            Rcpp::stop("No valid non-missing adjacency values in naive_bernoulli SBM network.");
+        pi.fill(accu(net.adj)/n_obs);
         symmetric=false;
     }
     
@@ -32,7 +42,10 @@ class naive_bernoulli
     {
         n_parameters = membership.Z.n_cols * (membership.Z.n_cols + 1)/2;
         pi.set_size(membership.Z.n_cols,membership.Z.n_cols);
-        pi.fill(accu(net.adj)/(net.adj.n_rows*net.adj.n_cols));
+        double n_obs = accu(net.maskNA);
+        if(n_obs<=0)
+            Rcpp::stop("No valid non-missing adjacency values in naive_bernoulli SBM_sym network.");
+        pi.fill(accu(net.adj)/n_obs);
         symmetric=true;
     }
     
@@ -40,7 +53,10 @@ class naive_bernoulli
     {
         n_parameters = membership.Z1.n_cols * membership.Z2.n_cols;
         pi.set_size(membership.Z1.n_cols,membership.Z2.n_cols);
-        pi.fill(accu(net.adj)/(net.adj.n_rows*net.adj.n_cols));
+        double n_obs = accu(net.maskNA);
+        if(n_obs<=0)
+            Rcpp::stop("No valid non-missing adjacency values in naive_bernoulli LBM network.");
+        pi.fill(accu(net.adj)/n_obs);
         symmetric=false;
     }
 
@@ -85,7 +101,7 @@ class naive_bernoulli
 inline
 double logf(naive_bernoulli & model, naive_bernoulli::network & net, unsigned int i, unsigned int j, unsigned int q, unsigned int l)
 {
-    return net.adj(i,j)*log(model.pi(q,l)) + (1-net.adj(i,j))*log(1-model.pi(q,l));
+    return net.maskNA(i,j) * (net.adj(i,j)*log(model.pi(q,l)) + (1-net.adj(i,j))*log(1-model.pi(q,l)));
 }
 
 inline
@@ -94,7 +110,7 @@ double grad_logf(naive_bernoulli & model, naive_bernoulli::network & net, unsign
     if( param % model.pi.n_rows == q )
     {
         if( param / model.pi.n_rows == l)
-            return net.adj(i,j)/(model.pi(q,l)) - (1-net.adj(i,j))/(1-model.pi(q,l));
+            return net.maskNA(i,j) * (net.adj(i,j)/(model.pi(q,l)) - (1-net.adj(i,j))/(1-model.pi(q,l)));
     }
     
     return 0;

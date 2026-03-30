@@ -22,6 +22,7 @@ class bernoulli_multiplex
          *cube n*n*d where d is the number of multiplex compounant
          */
          cube adj;
+         mat maskNA;
          
 
 
@@ -53,12 +54,26 @@ class bernoulli_multiplex
              */
             Rcpp::List adj_list = network_from_R["adjacency"];
             mat first_mat = Rcpp::as<mat>( adj_list[0] );
+            double na_replace_value = 0;
+            if(network_from_R.containsElementNamed("na_replace_value"))
+            {
+                na_replace_value = Rcpp::as<double>(network_from_R["na_replace_value"]);
+            }
             adj.set_size(first_mat.n_rows, first_mat.n_cols, adj_list.size());
+            maskNA = ones<mat>(first_mat.n_rows, first_mat.n_cols);
             for(int k=0; k<adj_list.size(); k++)
-                adj.slice(k) = Rcpp::as<mat>(adj_list[k]);
+            {
+                mat adj_orig_k = Rcpp::as<mat>(adj_list[k]);
+                maskNA %= compute_mask(adj_orig_k);
+                adj.slice(k) = replace_missing_values(adj_orig_k, na_replace_value);
+            }
+            for(unsigned int s=0; s<adj.n_slices; s++)
+            {
+                adj.slice(s) %= maskNA;
+            }
 
            // precomputation
-           Mones = ones<mat>(first_mat.n_rows, first_mat.n_cols);
+           Mones = maskNA;
            MonesZD = fill_diag(Mones,0);
            
            unsigned int K=(1U << adj.n_slices);
@@ -69,7 +84,7 @@ class bernoulli_multiplex
 
            for (unsigned int k=0;k<K;k++)
            {
-                adj_indicator(k)=Mones;
+             adj_indicator(k)=Mones;
                 for (unsigned int s=0;s<adj.n_slices;s++)
                 {
                     if  ((k>> (adj.n_slices-1-s)) & 1U )
