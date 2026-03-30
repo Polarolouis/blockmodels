@@ -14,6 +14,7 @@ class gaussian_multivariate
          * See poisson_covariates model for example
          */
         cube adj;
+        mat maskNA;
 
 
         /* Here you should add all precomputed values which depends only on the
@@ -23,6 +24,8 @@ class gaussian_multivariate
         cube adjZ;
         mat Mones;
         mat MonesZ;
+        double n_obs;
+        double n_obs_ZD;
 
         network(Rcpp::List & network_from_R)
         {
@@ -40,12 +43,28 @@ class gaussian_multivariate
              */
             Rcpp::List adj_list = network_from_R["adjacency"];
             mat first_mat = Rcpp::as<mat>( adj_list[0] );
+            double na_replace_value = 0;
+            if(network_from_R.containsElementNamed("na_replace_value"))
+            {
+                na_replace_value = Rcpp::as<double>(network_from_R["na_replace_value"]);
+            }
             adj.set_size(first_mat.n_rows, first_mat.n_cols, adj_list.size());
+            maskNA = ones<mat>(first_mat.n_rows, first_mat.n_cols);
             for(int k=0; k<adj_list.size(); k++)
-                adj.slice(k) = Rcpp::as<mat>(adj_list[k]);
+            {
+                mat adj_orig_k = Rcpp::as<mat>(adj_list[k]);
+                maskNA %= compute_mask(adj_orig_k);
+                adj.slice(k) = replace_missing_values(adj_orig_k, na_replace_value);
+            }
+            for(unsigned int s=0; s<adj.n_slices; s++)
+            {
+                adj.slice(s) %= maskNA;
+            }
 
-            Mones = ones<mat>(first_mat.n_rows, first_mat.n_cols);
+            Mones = maskNA;
             MonesZ = fill_diag(Mones,0);
+            n_obs = accu(Mones);
+            n_obs_ZD = accu(MonesZ);
             adjZ.set_size(adj.n_rows,adj.n_cols,adj.n_slices);
             for(unsigned int k=0; k<adj.n_slices; k++)
             {
@@ -275,6 +294,10 @@ double m_step(SBM & membership,
               gaussian_multivariate & model,
               gaussian_multivariate::network & net)
 {
+    if(net.n_obs_ZD<=0)
+    {
+        Rcpp::stop("No valid non-missing off-diagonal adjacency values in gaussian_multivariate SBM network.");
+    }
     mat provdiv = membership.Z.t() * net.MonesZ * membership.Z;
     for(unsigned int k=0; k<net.adj.n_slices;k++)
     {
@@ -289,7 +312,7 @@ double m_step(SBM & membership,
 
     for(unsigned int k1=0;k1<net.adj.n_slices;k1++)
         for(unsigned int k2=0;k2<net.adj.n_slices;k2++)
-            model.Sigma(k1,k2) = 1.0 / (net.adj.n_rows * (net.adj.n_cols - 1) ) *
+            model.Sigma(k1,k2) = 1.0 / net.n_obs_ZD *
                 accu(residual.slice(k1) % residual.slice(k2));
 
     // just to be sure:
@@ -299,8 +322,8 @@ double m_step(SBM & membership,
     cube X_tilde = apply_matrix_on_tubes(model.iL, net.adjZ);
     cube mu_tilde = apply_matrix_on_tubes(model.iL, model.mu);
 
-    double PL= -.5*(membership.Z.n_rows * (membership.Z.n_rows-1) * net.adj.n_slices)*log(2*M_PI);
-    PL += -.5*(membership.Z.n_rows * (membership.Z.n_rows-1)) * log( det(model.Sigma));
+    double PL= -.5*(net.n_obs_ZD * net.adj.n_slices)*log(2*M_PI);
+    PL += -.5*net.n_obs_ZD * log( det(model.Sigma));
     PL += -.5 * accu(X_tilde % X_tilde);
 
     for(unsigned int k=0;k<net.adj.n_slices;k++)
@@ -363,6 +386,10 @@ double m_step(LBM & membership,
               gaussian_multivariate & model,
               gaussian_multivariate::network & net)
 {
+    if(net.n_obs<=0)
+    {
+        Rcpp::stop("No valid non-missing adjacency values in gaussian_multivariate LBM network.");
+    }
     mat provdiv = membership.Z1.t() * net.Mones * membership.Z2;
     for(unsigned int k=0; k<net.adj.n_slices;k++)
     {
@@ -377,7 +404,7 @@ double m_step(LBM & membership,
 
     for(unsigned int k1=0;k1<net.adj.n_slices;k1++)
         for(unsigned int k2=0;k2<net.adj.n_slices;k2++)
-            model.Sigma(k1,k2) = 1.0 / (net.adj.n_rows * net.adj.n_cols ) *
+            model.Sigma(k1,k2) = 1.0 / net.n_obs *
                 accu(residual.slice(k1) % residual.slice(k2));
 
     // just to be sure:
@@ -387,8 +414,8 @@ double m_step(LBM & membership,
     cube X_tilde = apply_matrix_on_tubes(model.iL, net.adj);
     cube mu_tilde = apply_matrix_on_tubes(model.iL, model.mu);
 
-    double PL= -.5*(membership.Z1.n_rows * membership.Z2.n_rows * net.adj.n_slices)*log(2*M_PI);
-    PL += -.5*(membership.Z1.n_rows * membership.Z2.n_rows) * log( det(model.Sigma));
+    double PL= -.5*(net.n_obs * net.adj.n_slices)*log(2*M_PI);
+    PL += -.5*net.n_obs * log( det(model.Sigma));
     PL += -.5 * accu(X_tilde % X_tilde);
 
     for(unsigned int k=0;k<net.adj.n_slices;k++)
