@@ -22,7 +22,6 @@ class gaussian_covariates
          */
 
         mat adj;
-        mat maskNA;
         cube covariates;
 
 
@@ -50,14 +49,7 @@ class gaussian_covariates
              * adjacency matrix, and the i-th matrix is the matrix of the i-th
              * covariate on all edges.
              */
-            mat adj_orig = Rcpp::as<mat>(network_from_R["adjacency"]);
-            double na_replace_value = 0;
-            if(network_from_R.containsElementNamed("na_replace_value"))
-            {
-                na_replace_value = Rcpp::as<double>(network_from_R["na_replace_value"]);
-            }
-            maskNA = compute_mask(adj_orig);
-            adj = replace_missing_values(adj_orig, na_replace_value) % maskNA;
+            adj = Rcpp::as<mat>(network_from_R["adjacency"]);
 
             Rcpp::List covariates_list = network_from_R["covariates"];
 
@@ -66,7 +58,7 @@ class gaussian_covariates
                 covariates.slice(k) = Rcpp::as<mat>(covariates_list[k]);
 
             adjZD = fill_diag(adj,0);
-            Mones = maskNA;
+            Mones = ones<mat>(adj.n_rows,adj.n_cols);
             MonesZD = fill_diag(Mones,0);
             Monest = Mones.t();
         }

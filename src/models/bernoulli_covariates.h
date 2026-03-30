@@ -22,7 +22,6 @@ class bernoulli_covariates
          */
 
         mat adj; // adjacency matrix
-        mat maskNA;
         cube covariates; // cube of covariates the 3rd dimention is the index
                          // of covariate
 
@@ -51,14 +50,7 @@ class bernoulli_covariates
              * covariate on all edges.
              */
 
-            mat adj_orig = Rcpp::as<mat>(network_from_R["adjacency"]);
-            double na_replace_value = 0;
-            if(network_from_R.containsElementNamed("na_replace_value"))
-            {
-                na_replace_value = Rcpp::as<double>(network_from_R["na_replace_value"]);
-            }
-            maskNA = compute_mask(adj_orig);
-            adj = replace_missing_values(adj_orig, na_replace_value) % maskNA;
+            adj = Rcpp::as<mat>(network_from_R["adjacency"]);
 
             Rcpp::List covariates_list = network_from_R["covariates"];
             covariates.set_size(adj.n_rows,adj.n_cols,covariates_list.size());
@@ -66,7 +58,7 @@ class bernoulli_covariates
                 covariates.slice(k) = Rcpp::as<mat>(covariates_list[k]);
 
             adjZD = fill_diag(adj,0);
-            Mones = maskNA;
+            Mones = ones<mat>(adj.n_rows,adj.n_cols);
             MonesZD = fill_diag(Mones,0);
 
 

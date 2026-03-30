@@ -14,7 +14,6 @@ class gaussian_multivariate_independent_homoscedastic
          * See poisson_covariates model for example
          */
         cube adj;
-        mat maskNA;
 
 
         /* Here you should add all precomputed values which depends only on the
@@ -26,8 +25,6 @@ class gaussian_multivariate_independent_homoscedastic
         mat MonesZ;
         double accu_adj_square;
         double accu_adjZ_square;
-        double n_obs;
-        double n_obs_ZD;
 
         network(Rcpp::List & network_from_R)
         {
@@ -45,28 +42,12 @@ class gaussian_multivariate_independent_homoscedastic
              */
             Rcpp::List adj_list = network_from_R["adjacency"];
             mat first_mat = Rcpp::as<mat>( adj_list[0] );
-            double na_replace_value = 0;
-            if(network_from_R.containsElementNamed("na_replace_value"))
-            {
-                na_replace_value = Rcpp::as<double>(network_from_R["na_replace_value"]);
-            }
             adj.set_size(first_mat.n_rows, first_mat.n_cols, adj_list.size());
-            maskNA = ones<mat>(first_mat.n_rows, first_mat.n_cols);
             for(int k=0; k<adj_list.size(); k++)
-            {
-                mat adj_orig_k = Rcpp::as<mat>(adj_list[k]);
-                maskNA %= compute_mask(adj_orig_k);
-                adj.slice(k) = replace_missing_values(adj_orig_k, na_replace_value);
-            }
-            for(unsigned int s=0; s<adj.n_slices; s++)
-            {
-                adj.slice(s) %= maskNA;
-            }
+                adj.slice(k) = Rcpp::as<mat>(adj_list[k]);
 
-            Mones = maskNA;
+            Mones = ones<mat>(first_mat.n_rows, first_mat.n_cols);
             MonesZ = fill_diag(Mones,0);
-            n_obs = accu(Mones);
-            n_obs_ZD = accu(MonesZ);
             adjZ.set_size(adj.n_rows,adj.n_cols,adj.n_slices);
             for(unsigned int k=0; k<adj.n_slices; k++)
                 adjZ.slice(k) = fill_diag(adj.slice(k),0);
@@ -279,10 +260,6 @@ double m_step(SBM & membership,
               gaussian_multivariate_independent_homoscedastic & model,
               gaussian_multivariate_independent_homoscedastic::network & net)
 {
-    if(net.n_obs_ZD<=0)
-    {
-        Rcpp::stop("No valid non-missing off-diagonal adjacency values in gaussian_multivariate_independent_homoscedastic SBM network.");
-    }
     mat provdiv = membership.Z.t() * net.MonesZ * membership.Z;
     for(unsigned int k=0; k<net.adj.n_slices;k++)
     {
@@ -309,11 +286,11 @@ double m_step(SBM & membership,
             );
     }
 
-    model.sigma2 = 1.0/(net.n_obs_ZD * net.adj.n_slices) * all_accu;
+    model.sigma2 = 1.0/(membership.Z.n_rows * (membership.Z.n_rows-1) * net.adj.n_slices) * all_accu;
 
     return
         (
-                    -.5*(net.n_obs_ZD * net.adj.n_slices)*log(2*M_PI*model.sigma2)
+          -.5*(membership.Z.n_rows * (membership.Z.n_rows-1) * net.adj.n_slices)*log(2*M_PI*model.sigma2)
           -1.0/(2*model.sigma2)*all_accu
         );
 }
@@ -363,10 +340,6 @@ double m_step(LBM & membership,
               gaussian_multivariate_independent_homoscedastic & model,
               gaussian_multivariate_independent_homoscedastic::network & net)
 {
-    if(net.n_obs<=0)
-    {
-        Rcpp::stop("No valid non-missing adjacency values in gaussian_multivariate_independent_homoscedastic LBM network.");
-    }
     mat provdiv = membership.Z1.t() * net.Mones * membership.Z2;
     for(unsigned int k=0; k<net.adj.n_slices;k++)
     {
@@ -393,11 +366,11 @@ double m_step(LBM & membership,
             );
     }
 
-    model.sigma2 = 1.0/(net.n_obs * net.adj.n_slices) * all_accu;
+    model.sigma2 = 1.0/(membership.Z1.n_rows * membership.Z2.n_rows * net.adj.n_slices) * all_accu;
 
     return
         (
-                    -.5*(net.n_obs * net.adj.n_slices)*log(2*M_PI*model.sigma2)
+          -.5*(membership.Z1.n_rows * membership.Z2.n_rows * net.adj.n_slices)*log(2*M_PI*model.sigma2)
           -1.0/(2*model.sigma2)*all_accu
         );
 }
