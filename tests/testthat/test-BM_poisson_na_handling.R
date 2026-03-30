@@ -197,6 +197,7 @@ test_that("BM_poisson computation is invariant to na_replace_value", {
     model_custom$estimate()
 
     expect_equal(model_default$ICL, model_custom$ICL, tolerance = 1e-10)
+    max_ICL <- which.max(model_default$ICL)
     expect_equal(model_default$model_parameters[[max_ICL]]$lambda, model_custom$model_parameters[[max_ICL]]$lambda, tolerance = 1e-10)
 })
 
