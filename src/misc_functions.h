@@ -178,7 +178,11 @@ mat compute_mask(mat A) {
     mat mask(size(A), fill::ones);
 
     mask.elem(find_nonfinite(A)).zeros();
-    
+
+    if (mask.is_zero()) {
+        Rcpp::stop("No valid edges in adjacency matrix. They are all NAs.");
+    }
+
     return(mask);
 }
 
