@@ -69,9 +69,7 @@ class gaussian
             }
 
             maskNA = compute_mask(adj_orig);
-            if (maskNA.is_zero()) {
-                Rcpp::stop("No valid edges in adjacency matrix. They are all NAs.");
-            }
+
             maskNAt = maskNA.t();
 
             adj = replace_missing_values(adj_orig, na_replace_value); // Replace NAs to perform
