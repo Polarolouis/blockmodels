@@ -43,7 +43,7 @@ test_that("BM_gaussian SBM fails gracefully when all values are NA", {
 
     expect_error(
         model$estimate(),
-        "No valid non-missing off-diagonal adjacency values in gaussian SBM network\\."
+        "No valid edges in adjacency matrix. They are all NAs\\."
     )
 })
 
@@ -98,7 +98,7 @@ test_that("BM_gaussian SBM_sym fails gracefully when all values are NA", {
 
     expect_error(
         model$estimate(),
-        "No valid non-missing off-diagonal adjacency values in gaussian SBM network\\."
+        "No valid edges in adjacency matrix. They are all NAs\\."
     )
 })
 
@@ -148,7 +148,7 @@ test_that("BM_gaussian LBM fails gracefully when all values are NA", {
 
     expect_error(
         model$estimate(),
-        "No valid non-missing adjacency values in gaussian LBM network\\."
+        "No valid edges in adjacency matrix. They are all NAs\\."
     )
 })
 

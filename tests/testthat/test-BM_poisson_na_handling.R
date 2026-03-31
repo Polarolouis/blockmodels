@@ -44,7 +44,7 @@ test_that("BM_poisson SBM fails gracefully when all values are NA", {
 
     expect_error(
         model$estimate(),
-        "No valid non-missing off-diagonal adjacency values in poisson SBM network\\."
+        "No valid edges in adjacency matrix. They are all NAs\\."
     )
 })
 
@@ -100,7 +100,7 @@ test_that("BM_poisson SBM_sym fails gracefully when all values are NA", {
 
     expect_error(
         model$estimate(),
-        "No valid non-missing off-diagonal adjacency values in poisson SBM network\\."
+        "No valid edges in adjacency matrix. They are all NAs\\."
     )
 })
 
@@ -151,7 +151,7 @@ test_that("BM_poisson LBM fails gracefully when all values are NA", {
 
     expect_error(
         model$estimate(),
-        "No valid non-missing adjacency values in poisson LBM network\\."
+        "No valid edges in adjacency matrix. They are all NAs\\."
     )
 })
 
