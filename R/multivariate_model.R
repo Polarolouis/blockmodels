@@ -3,12 +3,22 @@ setRefClass("multivariate_model",
     contains = "model",
     fields = list(
         adj = "list",
-        nodes_covariates = "list"
+        nodes_covariates = "list",
+        na_replace_value = "numeric"
     ),
     methods = list(
         postinit = function()
         {
             callSuper()
+
+            if (length(na_replace_value) == 0)
+            {
+                na_replace_value <<- 0
+            }
+            if (length(na_replace_value) != 1 || !is.finite(na_replace_value))
+            {
+                stop("na_replace_value must be a single finite numeric value.")
+            }
 
             if(length(adj)<1)
             {
@@ -86,7 +96,7 @@ setRefClass("multivariate_model",
         {
             paste(nrow(adj[[1]]),"x",ncol(adj[[1]]),"multivariate network in dimention",length(adj))
         },  
-        network_to_cc = function() { list(adjacency = adj) },
+        network_to_cc = function() { list(adjacency = adj, na_replace_value = na_replace_value) },
         data_number = function()
         {
             if(membership_name=="SBM")

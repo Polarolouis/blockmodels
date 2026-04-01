@@ -52,3 +52,34 @@ test_that("BM_poisson_covariates LBM estimation runs", {
   model <- BM_poisson_covariates("LBM", M, list(Y1, Y2), plotting = "", explore_min = 2, explore_max = 2, ncores = 2, verbosity = 0)
   expect_model_estimation(model)
 })
+
+test_that("BM_poisson_covariates SBM handles partial NA and is invariant to na_replace_value", {
+  set.seed(121)
+
+  npc <- 10
+  Q <- 2
+  n <- npc * Q
+  Z <- diag(Q) %x% matrix(1, npc, 1)
+  L <- 50 * matrix(runif(Q * Q), Q, Q)
+  Y1 <- matrix(runif(n * n), n, n)
+  Y2 <- matrix(runif(n * n), n, n)
+  E <- Z %*% L %*% t(Z) * exp(2.2 * Y1 - 0.8 * Y2)
+  M <- matrix(rpois(length(as.vector(E)), as.vector(E)), n, n)
+
+  off_diag <- which(row(M) != col(M))
+  set.seed(122)
+  M[sample(off_diag, max(1, floor(0.15 * length(off_diag))))] <- NA_real_
+
+  set.seed(123)
+  model_default <- BM_poisson_covariates("SBM", M, list(Y1, Y2), na_replace_value = 0, plotting = "", explore_min = 2, explore_max = 2, ncores = 1, verbosity = 0)
+  expect_no_error(model_default$estimate())
+
+  set.seed(123)
+  model_custom <- BM_poisson_covariates("SBM", M, list(Y1, Y2), na_replace_value = 1234, plotting = "", explore_min = 2, explore_max = 2, ncores = 1, verbosity = 0)
+  expect_no_error(model_custom$estimate())
+
+  expect_equal(model_default$ICL, model_custom$ICL, tolerance = 1e-10)
+  k <- which.max(model_default$ICL)
+  expect_equal(model_default$model_parameters[[k]]$lambda, model_custom$model_parameters[[k]]$lambda, tolerance = 1e-10)
+  expect_equal(model_default$model_parameters[[k]]$beta, model_custom$model_parameters[[k]]$beta, tolerance = 1e-10)
+})

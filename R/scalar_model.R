@@ -2,12 +2,23 @@ setRefClass("scalar_model",
     contains = "model",
     fields = list(
         adj = "matrix",
-        nodes_covariates = "list"
+        nodes_covariates = "list",
+        na_replace_value = "numeric"
     ),
     methods = list(
         postinit = function()
         {
             callSuper()
+
+            if (length(na_replace_value) == 0)
+            {
+                na_replace_value <<- 0
+            }
+            if (length(na_replace_value) != 1 || !is.finite(na_replace_value))
+            {
+                stop("na_replace_value must be a single finite numeric value.")
+            }
+
             if(membership_name=="SBM" || membership_name=="SBM_sym")
             {
                 if(nrow(adj)!=ncol(adj))
@@ -71,7 +82,7 @@ setRefClass("scalar_model",
         {
             paste(nrow(adj),"x",ncol(adj),"scalar network")
         },  
-        network_to_cc = function() { list(adjacency = adj) },
+        network_to_cc = function() { list(adjacency = adj, na_replace_value = na_replace_value) },
         split_membership_model = function(Q)
         {
             membership <- memberships[[Q]]
@@ -161,17 +172,18 @@ setRefClass("scalar_model",
         },
         data_number = function()
         {
+            mask <- !is.na(adj)
             if(membership_name=="SBM")
             {
-                return(dim(adj)[1]*(dim(adj)[1]-1))
+                return(sum(mask) - sum(diag(mask)))
             }
             if(membership_name=="SBM_sym")
             {
-                return(dim(adj)[1]*(dim(adj)[1]-1)/2)
+                return((sum(mask) - sum(diag(mask)))/2)
             }
             else
             {
-                return(dim(adj)[1]*(dim(adj)[2]))
+                return(sum(mask))
             }
         },
         precompute = function()
@@ -332,7 +344,9 @@ setRefClass("scalar_model",
         plot_transform = function(x){x},
         residual = function(Q)
         {
-            adj-.self$prediction(Q)
+            non_na_adj <- adj
+            non_na_adj[is.na(adj)] <- 0
+            non_na_adj-.self$prediction(Q)
         }
 
             
