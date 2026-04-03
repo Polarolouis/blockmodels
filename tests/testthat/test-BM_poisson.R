@@ -42,6 +42,79 @@ test_that("BM_poisson LBM estimation runs", {
   expect_model_estimation(model)
 })
 
+test_that("BM_poisson SBM with nodes covariates runs and passes nodes covariates", {
+    npc <- 10
+    Q <- 2
+    n <- npc * Q
+    Z <- diag(Q) %x% matrix(1, npc, 1)
+    X <- cbind(1, runif(n), runif(n))
+    L <- 70 * matrix(runif(Q * Q), Q, Q)
+    M_in_expectation <- Z %*% L %*% t(Z)
+    M <- matrix(rpois(length(as.vector(M_in_expectation)), as.vector(M_in_expectation)), n, n)
+
+    model <- BM_poisson(
+        "SBM",
+        M,
+        nodes_covariates = list(node = X),
+        plotting = "",
+        explore_min = 2,
+        explore_max = 4,
+        ncores = 1,
+        verbosity = 0
+    )
+
+    expect_model_estimation(model)
+    expect_model_nodes_covariates(model, X)
+})
+
+test_that("BM_poisson SBM_sym with nodes covariates runs and passes nodes covariates", {
+    npc <- 10
+    Q <- 2
+    n <- npc * Q
+    Z <- diag(Q) %x% matrix(1, npc, 1)
+    X <- cbind(1, runif(n), runif(n))
+    L <- 70 * matrix(runif(Q * Q), Q, Q)
+    M_in_expectation <- Z %*% L %*% t(Z)
+    M <- matrix(rpois(length(as.vector(M_in_expectation)), as.vector(M_in_expectation)), n, n)
+    M[lower.tri(M)] <- t(M)[lower.tri(M)]
+
+    model <- BM_poisson(
+        "SBM_sym",
+        M,
+        nodes_covariates = list(node = X),
+        plotting = "",
+        explore_min = 2,
+        explore_max = 4,
+        ncores = 1,
+        verbosity = 0
+    )
+
+    expect_model_estimation(model)
+    expect_model_nodes_covariates(model, X)
+})
+
+test_that("BM_poisson LBM with nodes covariates runs and passes nodes covariates", {
+    npc <- c(20, 10)
+    Q <- c(1, 2)
+    n <- npc * Q
+    Z1 <- diag(Q[1]) %x% matrix(1, npc[1], 1)
+    Z2 <- diag(Q[2]) %x% matrix(1, npc[2], 1)
+    X_row <- cbind(1, runif(n[1]), runif(n[1]))
+    X_col <- cbind(1, runif(n[2]), runif(n[2]))
+    L <- 70 * matrix(runif(Q[1] * Q[2]), Q[1], Q[2])
+    M_in_expectation <- Z1 %*% L %*% t(Z2)
+    M <- matrix(rpois(length(as.vector(M_in_expectation)), as.vector(M_in_expectation)), n[1], n[2])
+
+    model <- BM_poisson("LBM", M,
+        nodes_covariates = list(row = X_row, col = X_col), 
+        plotting = "", 
+        explore_min = 2, 
+        explore_max = 4, 
+        ncores = 2, verbosity = 0
+    )
+    expect_model_estimation(model)
+})
+
 test_that("BM_poisson SBM handles partial NA values", {
     set.seed(12)
 
