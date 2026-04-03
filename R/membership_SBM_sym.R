@@ -19,6 +19,9 @@ setRefClass("SBM_sym",
                 else
                 {
                     Z <<- from_cc$Z
+                    if ("nodes_covariates" %in% names(from_cc) && !is.null(from_cc[["nodes_covariates"]])){
+                        nodes_covariates <<- from_cc[["nodes_covariates"]]
+                    }
                     if ("B" %in% names(from_cc)) {
                         B <<- from_cc[["B"]]
                     }
