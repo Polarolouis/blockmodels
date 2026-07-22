@@ -7,6 +7,7 @@ Poisson…), with or without covariates.
 ## Installation
 
 ``` r
+
 install.packages("blockmodels")
 ```
 
